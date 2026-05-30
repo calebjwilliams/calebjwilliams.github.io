@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Caleb Williams">
+<meta name="dcterms.date" content="2026-05-01">
+
+<title>State-Space Models and Kalman Filtering: Local Trend Model Manual Implementation – techblog</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">techblog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">State-Space Models and Kalman Filtering: Local Trend Model Manual Implementation</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">code</div>
+                <div class="quarto-category">time series analysis</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Caleb Williams </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 1, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="state-space-model" class="level1">
+<h1>State-Space Model</h1>
+<p>The state-space model assumes that there are 2 layers of reality:</p>
+<ol type="1">
+<li>a <strong>hidden layer</strong> (or state) - the true underlying state of the system which can never be directly observed</li>
+<li>an <strong>observable layer</strong> (or measurement) - a measurement of that true hidden state which is all we can see</li>
+</ol>
+<p>First we’ll look at the most basic state-space model: the local trend model</p>
+<section id="local-trend-model" class="level2">
+<h2 class="anchored" data-anchor-id="local-trend-model">Local Trend Model</h2>
+<p><span class="math display">\[
+y_t = \mu_t + e_t, \quad e_t \sim N(0, \sigma^2_e), \tag{11.1}
+\]</span> <span class="math display">\[
+\mu_{t+1} = \mu_t + \eta_t, \quad \eta_t \sim N(0, \sigma^2_\eta), \tag{11.2}
+\]</span></p>
+<p>Equation (11.1) is called the <strong>observation equation</strong> - shows how our observable layer changes over time - can see that measurements are our hidden state + measurement noise</p>
+<p>Equation (11.2) is called the <strong>state or transition state equation</strong> - models how our hidden layer evolves over time - it’s essentially VAR on the hidden state: next state = past state + transition noise (random showcks to hidden state)</p>
+<p>In the local trend model we assume that our hidden state follows a random walk and that our observation is simply our state plus noise, but this is not a rule nor is it the best case all of the time.</p>
+<p>State-space models can take on many forms depending on our assumptions about the underlying dynamics of our data.</p>
+<p>In fact, most models in econometrics and time series (ARMA, ARIMA, VAR, etc.) can be rewritten as state-space representations, with varying state/observation equations, which we will see later.</p>
+<section id="statistical-inference" class="level3">
+<h3 class="anchored" data-anchor-id="statistical-inference">Statistical Inference</h3>
+<p>There are essentially 3 different types of Inference:<br>
+(let <span class="math inline">\(\mu_t\)</span> = hidden state, and <span class="math inline">\(F_t = \{y_1, \dots, y_t\}\)</span>: “all data up to and including time t”)</p>
+<ol type="1">
+<li><strong>Filtering</strong> - estimating <span class="math inline">\(\mu_t\)</span> using <span class="math inline">\(F_t\)</span>
+<ul>
+<li>we’re at time t, and have seen everything up to t, and want to guess the current hidden state; what Kalman Filter does</li>
+</ul></li>
+<li><strong>Prediction</strong> - estimating <span class="math inline">\(\mu_{t+h}\)</span> using <span class="math inline">\(F_t\)</span>
+<ul>
+<li>we’re at time t, and have seen everything up to t, and want to forecast h steps ahead. We haven’t seen past t</li>
+</ul></li>
+<li><strong>Smoothing</strong> - estimating <span class="math inline">\(\mu_t\)</span> using <span class="math inline">\(F_T\)</span>, where <span class="math inline">\(T &gt; t\)</span>
+<ul>
+<li>we’ve seen the entire dataset, everything up to T, and want to go back and re-estimate what <span class="math inline">\(\mu_t\)</span> was at some earlier point; what the Kalman Smoother does</li>
+<li>this always gives better estimates than filtering because we have more information</li>
+</ul></li>
+</ol>
+</section>
+</section>
+</section>
+<section id="local-trend-model-kalman---manual-implementation" class="level1">
+<h1>Local Trend Model Kalman - Manual Implementation</h1>
+<p>For my first exercise, I’ll be implementing a Kalman filter on the log of the realized volatility of Alcoa stock from January 2, 2003 to May 7, 2004.</p>
+<section id="step-1-defining-the-state-space-model" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-defining-the-state-space-model">Step 1: Defining the State-Space Model</h3>
+<p>Before I can implement the Kalman Filter, i need to define what state-space model represents this data best. First I’ll import and inspect the data. Then I’ll try fitting standard Time Series models and see what works, and then transform to state-space form.</p>
+<div id="0fd46d37-0e55-4391-8119-63574a228b9a" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.arima.model <span class="im">import</span> ARIMA <span class="co"># for fitting ARIMA models</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime, timedelta</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> time <span class="im">import</span> time</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.stattools <span class="im">import</span> adfuller <span class="co"># for running adf test</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.stattools <span class="im">import</span> kpss <span class="co"># for running kpss test</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.tsa.stattools <span class="im">import</span> acf, pacf <span class="co"># for calculating actual acf and pcf values</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.graphics.tsaplots <span class="im">import</span> plot_acf, plot_pacf <span class="co"># for plotting acf, pacf</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="eb9c429b-19b1-45bc-b1c7-f00bf5f1484c" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>alcoa <span class="op">=</span> pd.read_csv(<span class="st">"alcoa_log_rv.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>, parse_dates <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(alcoa.shape)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>alcoa.head(<span class="dv">10</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(340, 1)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">x</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-02</td>
+<td>1.245451</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-03</td>
+<td>1.422385</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-06</td>
+<td>0.192602</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-07</td>
+<td>0.627168</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-08</td>
+<td>2.405115</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-09</td>
+<td>1.163619</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-10</td>
+<td>1.760922</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-13</td>
+<td>0.785726</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-14</td>
+<td>0.954357</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-15</td>
+<td>1.779349</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="c008914e-0913-4701-a432-1c6d3da27f27" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># explictly set frequency to business days</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>alcoa <span class="op">=</span> alcoa.asfreq(<span class="st">'B'</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.infer_freq(alcoa.index))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(alcoa.x.isna().<span class="bu">sum</span>())  <span class="co"># how many NaNs?</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(alcoa.x.isna().mean()) <span class="co"># what fraction?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>B
+12
+0.03409090909090909</code></pre>
+</div>
+</div>
+<div id="6eb988ab-5406-4207-88df-88a2e261632b" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>alcoa <span class="op">=</span> alcoa.dropna()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>alcoa.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>(340, 1)</code></pre>
+</div>
+</div>
+<div id="78ed25c0-16f3-42d7-98a1-90240d56d828" class="cell" data-execution_count="78">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># observed</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ax.plot(alcoa.index, alcoa[<span class="st">'x'</span>], color<span class="op">=</span><span class="st">'navy'</span>, label<span class="op">=</span><span class="st">'Observed'</span>, alpha<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Log of Realized Volatility of Alcoa Stock"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="kalman_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Looking at the data, we notice a few things: - there’s no obvious mean; it wanders around without reverting to a fixed level - shocks seem to be somewhat persistent</p>
+<p>This leads me to believe that this series is non-stationary.</p>
+<p>I’ll do some formal checks now</p>
+<div id="6cef0776-c919-4ed2-b61a-48977dbe5ca7" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> perform_adf_kpss_tests(series):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    adf_result <span class="op">=</span> adfuller(series)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'ADF Statistic: </span><span class="sc">%f</span><span class="st">'</span> <span class="op">%</span> adf_result[<span class="dv">0</span>])</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'p-value: </span><span class="sc">%f</span><span class="st">'</span> <span class="op">%</span> adf_result[<span class="dv">1</span>])</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    kpss_result <span class="op">=</span> kpss(series)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'KPSS Statistic: </span><span class="sc">%f</span><span class="st">'</span> <span class="op">%</span> kpss_result[<span class="dv">0</span>])</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'p-value: </span><span class="sc">%f</span><span class="st">'</span> <span class="op">%</span> kpss_result[<span class="dv">1</span>])</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="47c8de94-8dc9-4ce7-ba1e-c167512da99c" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>perform_adf_kpss_tests(alcoa.x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ADF Statistic: -5.499503
+p-value: 0.000002
+KPSS Statistic: 1.171610
+p-value: 0.010000</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/2w/snn2ch354_s3_1yf6tsg1xb00000gn/T/ipykernel_91495/2197700585.py:7: InterpolationWarning: The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+
+  kpss_result = kpss(series)</code></pre>
+</div>
+</div>
+<ul>
+<li>ADF p-value &lt;0.05 -&gt; reject null, <strong>series has no unit root</strong></li>
+<li>KPSS p-value &lt;0.05 -&gt; reject null, <strong>series is non-stationary</strong></li>
+</ul>
+<p>This contradiction would be problematic with other series, but for log realized volatility it is normal – it usually means the series is near-integrated: highly persistent but not quite a unit root. It behaves like a random walk in finite samples but is technically stationary.</p>
+<p>Despite ADF suggesting stationarity, we’ll follow Tsay’s empirical approach and proceed with ARIMA identification including first differencing.</p>
+<p>Following Tsay (2005, Chapter 11), we’ll fit an ARIMA(0,1,1) model to the log realized volatility series, which corresponds to the local trend state-space model. We’ll use this as the basis for implementing and verifying our Kalman filter.</p>
+<div id="755564b7-cea2-40dc-a5b8-0ef24d33483f" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># define model</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>arima_011 <span class="op">=</span> ARIMA(alcoa, order <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/Users/calebwilliams/opt/anaconda3/lib/python3.12/site-packages/statsmodels/tsa/base/tsa_model.py:473: ValueWarning: A date index has been provided, but it has no associated frequency information and so will be ignored when e.g. forecasting.
+  self._init_dates(dates, freq)
+/Users/calebwilliams/opt/anaconda3/lib/python3.12/site-packages/statsmodels/tsa/base/tsa_model.py:473: ValueWarning: A date index has been provided, but it has no associated frequency information and so will be ignored when e.g. forecasting.
+  self._init_dates(dates, freq)
+/Users/calebwilliams/opt/anaconda3/lib/python3.12/site-packages/statsmodels/tsa/base/tsa_model.py:473: ValueWarning: A date index has been provided, but it has no associated frequency information and so will be ignored when e.g. forecasting.
+  self._init_dates(dates, freq)</code></pre>
+</div>
+</div>
+<div id="e46a2403-ef75-4592-89fc-391225ccb9de" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit the model</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> time()</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>arima_011_fit <span class="op">=</span> arima_011.fit()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> time()</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Model Fitting Time'</span>, end <span class="op">-</span> start)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model Fitting Time 0.056204795837402344</code></pre>
+</div>
+</div>
+<div id="468dad4a-05ea-4638-ba87-fc6d4c04fbe5" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># summary of model</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(arima_011_fit.summary())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                      x   No. Observations:                  340
+Model:                 ARIMA(0, 1, 1)   Log Likelihood                -258.975
+Date:                Thu, 28 May 2026   AIC                            521.950
+Time:                        01:42:43   BIC                            529.602
+Sample:                             0   HQIC                           525.000
+                                - 340                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P&gt;|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+ma.L1         -0.8582      0.033    -26.102      0.000      -0.923      -0.794
+sigma2         0.2688      0.016     16.723      0.000       0.237       0.300
+===================================================================================
+Ljung-Box (L1) (Q):                   2.10   Jarque-Bera (JB):                29.11
+Prob(Q):                              0.15   Prob(JB):                         0.00
+Heteroskedasticity (H):               1.56   Skew:                             0.31
+Prob(H) (two-sided):                  0.02   Kurtosis:                         4.30
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).</code></pre>
+</div>
+</div>
+<div id="26e35a3b-f45f-424e-92c3-27bde88659ca" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>theta_hat <span class="op">=</span> <span class="fl">0.8582</span>          </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>sigma_a_hat <span class="op">=</span> np.sqrt(<span class="fl">0.2688</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(theta_hat)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sigma_a_hat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.8582
+0.5184592558726288</code></pre>
+</div>
+</div>
+<p>So our ARIMA(0,1,1) model can be written as</p>
+<p><span class="math display">\[(1− B)y_t = (1− 0.858B)a_t, \]</span> <span class="math display">\[\hat{\sigma_a} = 0.5184\]</span></p>
+<p>(integrated MA(1))</p>
+<p>How we believe the system looks: <span class="math display">\[
+y_t = \mu_t + e_t, \quad e_t \sim N(0, \sigma^2_e)
+\]</span> <span class="math display">\[
+\mu_{t+1} = \mu_t + \eta_t, \quad \eta_t \sim N(0, \sigma^2_\eta)
+\]</span></p>
+<p>But we have no way of directly observing <span class="math inline">\(\sigma^2_e\)</span> or <span class="math inline">\(\sigma^2_\eta\)</span></p>
+<p>However, we can and have gotten <span class="math inline">\(\hat{\sigma_a}\)</span> <span class="math inline">\(\hat{\theta_a}\)</span> by fitting ARIMA(0,1,1) on our data <span class="math inline">\(y_t\)</span></p>
+<p>We know that since state-space and ARIMA(0,1,1) are describing the same data, there must be a mathematical equivalence where we can solve for <span class="math inline">\(\sigma^2_e\)</span> and <span class="math inline">\(\sigma^2_\eta\)</span></p>
+<p>That relationship is given as: <span class="math display">\[ \sigma^2_\eta + 2\sigma^2_e = (1 + \theta^2)\sigma^2_a \]</span> <span class="math display">\[ \sigma^2_e = \theta\sigma^2_a \]</span></p>
+<div id="2fecd5b6-b950-46a9-9616-28b892fd0c50" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Solving for our state-space parameters: </span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>sigma_e_squared <span class="op">=</span> theta_hat<span class="op">*</span>sigma_a_hat<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>sigma_eta_squared <span class="op">=</span> ((<span class="dv">1</span> <span class="op">+</span> theta_hat<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> sigma_a_hat<span class="op">**</span><span class="dv">2</span>) <span class="op">-</span> <span class="dv">2</span><span class="op">*</span>sigma_e_squared</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>sigma_e   <span class="op">=</span> np.sqrt(sigma_e_squared)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>sigma_eta <span class="op">=</span> np.sqrt(sigma_eta_squared)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sigma_e)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sigma_eta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.480295908789571
+0.07351752248273873</code></pre>
+</div>
+</div>
+<p>Now we have our state-space parameters <span class="math inline">\(\hat{\sigma^2_e}\)</span> and <span class="math inline">\(\hat{\sigma^2_\eta}\)</span></p>
+<p>Notice what each tells us about our data: - $ = 0.480 $ - <span class="math inline">\(\hat{\sigma_\eta} = 0.0735\)</span></p>
+<p><span class="math inline">\(\hat{\sigma_e}\)</span> is nearly 6 times larger than <span class="math inline">\(\hat{\sigma_\eta}\)</span>!</p>
+<p>This means that the true underlying volatility <span class="math inline">\(\mu_t\)</span> moves about 0.07 units/day on average, but our observation is off by about 0.48 units just from measurement noise.</p>
+<p>So, on any given day, a big move in log realized volatility is <em>mostly noise</em>, not real change in underlying volatility.</p>
+</section>
+<section id="step-2-setting-up-kalman-filter" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-setting-up-kalman-filter">Step 2: Setting up Kalman Filter</h3>
+<p>Now that we’ve completed the parameter estimation step, we have the components of our local trend model to be used in the Kalman Filter, and can move on to the actual steps of the filter.</p>
+<p>Our local-trend model:</p>
+<p><span class="math display">\[
+y_t = \mu_t + e_t, \quad e_t \sim N(0, \sigma^2_e)
+\]</span> <span class="math display">\[
+\mu_{t+1} = \mu_t + \eta_t, \quad \eta_t \sim N(0, \sigma^2_\eta)
+\]</span></p>
+<p>where - $_e = 0.480 $ - <span class="math inline">\(\sigma_\eta = 0.0735\)</span></p>
+<p>The Kalman Filter Algorithm for a local trend model is as follows:</p>
+<p>At each time step t we run 7 equations in order:</p>
+<p><span class="math display">\[ v_t = y_t - \mu_{t|t-1} \tag{compute innovation/forecast error}\]</span></p>
+<p><span class="math display">\[ V_t = \Sigma_{t|t-1} + \sigma^2_e \tag{compute innovation variance}\]</span></p>
+<p><span class="math display">\[ K_t = \frac{\Sigma_{t|t-1}}{V_t} \tag{Kalman Gain}\]</span></p>
+<p><span class="math display">\[ \mu_{t|t} = \mu_{t|t-1}  + K_tv_t \tag{update state estimate}\]</span></p>
+<p><span class="math display">\[ \Sigma_{t|t} = \Sigma_{t|t-1}(1 - K_t) \tag{update state uncertainty}\]</span></p>
+<p><span class="math display">\[ \mu_{t+1|t} = \mu_{t|t}  \tag{predict state estimate at t + 1}\]</span></p>
+<p><span class="math display">\[ \Sigma_{t+1|t} = \Sigma_{t|t} + \sigma^2_\eta \tag{predict state uncertainty at t + 1 }\]</span></p>
+<p>We also need to initialize <span class="math inline">\(\Sigma_1|0\)</span> and <span class="math inline">\(\mu_1|0\)</span> before we can run our Filter.</p>
+<p>We’ll set</p>
+<ul>
+<li><span class="math inline">\(\Sigma_1|0 = \infty\)</span></li>
+<li><span class="math inline">\(\mu_1|0 = anything\)</span></li>
+</ul>
+<p>This is <strong>diffuse initalization</strong>, where we have no prior knowledge of our initial state <span class="math inline">\(\mu_1|0\)</span>, so we set <span class="math inline">\(\mu_1|0\)</span> to anything and <span class="math inline">\(\Sigma_1|0\)</span> to a very large value (meaning we have huge uncertainty about our estimate for <span class="math inline">\(\mu_1|0\)</span>). We trust that the filter will cause <span class="math inline">\(\mu_t|t\)</span> and <span class="math inline">\(\Sigma_1|0\)</span> to eventually converge.</p>
+<div id="c6d5506f-6a71-4fcb-a7a0-4a99fc8d198d" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>alcoa.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">x</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-02</td>
+<td>1.245451</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-03</td>
+<td>1.422385</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-06</td>
+<td>0.192602</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-07</td>
+<td>0.627168</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-08</td>
+<td>2.405115</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="dd1147ad-1c31-4b15-8dbd-d1d6f574f9bd" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize </span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> [<span class="va">None</span>] <span class="co"># innovation</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> [<span class="va">None</span>] <span class="co"># variance of innovation</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> [<span class="va">None</span>] <span class="co"># Kalman Gain</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>mu <span class="op">=</span> [<span class="va">None</span>] <span class="co"># filtered state estimate; indexing 1 means mu_1|1</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>sig <span class="op">=</span> [<span class="va">None</span>] <span class="co"># filtered state variance estimate; indexing 1 means sig_1|1</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>mu_pred <span class="op">=</span> [<span class="va">None</span>] <span class="co"># prediction of state at t+1; indexing 1 means mu_1|0</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>sig_pred <span class="op">=</span> [<span class="va">None</span>] <span class="co"># prediction of state variance at t+1; indexing 1 means sig_1|0</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co"># set initial parameters - diffuse initialization</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>mu_pred.append(<span class="dv">0</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>sig_pred.append(<span class="dv">10</span><span class="op">**</span><span class="dv">6</span>)</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="co"># also know from earlier</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sigma_e_squared)</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sigma_eta_squared)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.23068415999999992
+0.005404826111999994</code></pre>
+</div>
+</div>
+<div id="9d07dbee-387f-4a64-9e9d-c5c8ad145d65" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> alcoa[<span class="st">'x'</span>]</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> <span class="bu">len</span>(y)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>340</code></pre>
+</div>
+</div>
+<div id="011975e8-ac01-4d7d-9a65-f57acc1aeec6" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, T<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># innovation </span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    v_t <span class="op">=</span> y.iloc[t<span class="op">-</span><span class="dv">1</span>] <span class="op">-</span> mu_pred[t]</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    v.append(v_t)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># variance of innovation </span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    V_t <span class="op">=</span> sig_pred[t] <span class="op">+</span> sigma_e_squared</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    V.append(V_t)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Kalman gain</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    K_t <span class="op">=</span> sig_pred[t]<span class="op">/</span>V_t</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    K.append(K_t)</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># filtered state estimate</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    mu_t_t <span class="op">=</span> mu_pred[t] <span class="op">+</span> K_t<span class="op">*</span>v_t</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    mu.append(mu_t_t)</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># filtered state variance estimate</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>    sig_t_t <span class="op">=</span> sig_pred[t]<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>K_t)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>    sig.append(sig_t_t)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># prediction of state at t+1</span></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>    mu_pred_t <span class="op">=</span> mu_t_t</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>    mu_pred.append(mu_pred_t)</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># prediction of state variance at t+1</span></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>    sig_pred_t <span class="op">=</span> sig_t_t <span class="op">+</span> sigma_eta_squared</span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>    sig_pred.append(sig_pred_t)</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="dfdc23a4-98b7-4dea-b124-113806f49b52" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(v[:<span class="dv">10</span>])</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(V[:<span class="dv">10</span>])</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(K[:<span class="dv">10</span>])</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mu[:<span class="dv">10</span>])</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sig[:<span class="dv">10</span>])</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mu_pred[:<span class="dv">10</span>])</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sig_pred[:<span class="dv">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[None, 1.24545058377224, 0.1769348847976555, -1.1423402385602917, -0.31244313945232227, 1.5498032003292557, -0.043104063319227226, 0.5628243326174625, -0.5151999221545392, -0.25852055692641507]
+[None, 1000000.23068416, 0.46677309292870306, 0.3527666138566501, 0.31592218804336003, 0.2983291947564786, 0.2883957609608608, 0.2822517734759867, 0.2782351574235674, 0.2755134139930492]
+[None, 0.9999997693158932, 0.5057895078043078, 0.34607145081552265, 0.2698070324571862, 0.22674627875993253, 0.20011251472136962, 0.1827007598248945, 0.17090218886745112, 0.16271169284766754]
+[None, 1.2454502964665846, 1.3349421047618026, 0.9396107610782922, 0.8553114048110544, 1.2067235132959473, 1.1980978507904276, 1.3009262840075773, 1.212877489607026, 1.1708131721536073]
+[None, 0.23068410681670315, 0.11667762774465015, 0.07983320193136012, 0.062240208644478705, 0.05230677484886086, 0.046162787363986775, 0.04214617131156752, 0.039424427881049294, 0.03753501018674218]
+[None, 0, 1.2454502964665846, 1.3349421047618026, 0.9396107610782922, 0.8553114048110544, 1.2067235132959473, 1.1980978507904276, 1.3009262840075773, 1.212877489607026]
+[None, 1000000, 0.23608893292870314, 0.12208245385665015, 0.08523802804336011, 0.0676450347564787, 0.05771160096086085, 0.05156761347598677, 0.04755099742356751, 0.04482925399304929]</code></pre>
+</div>
+</div>
+<div id="d388799a-8bd2-4432-9ff4-8007113148e4" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Kalman Smoother Implementation</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># initialization </span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>q <span class="op">=</span> [<span class="va">None</span>] <span class="op">*</span> T</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>M <span class="op">=</span> [<span class="va">None</span>]<span class="op">*</span> T</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>mu_smooth <span class="op">=</span> [<span class="va">None</span>] <span class="op">*</span> (T<span class="op">+</span><span class="dv">1</span>) <span class="co"># represents mu_t|T; indexing 1 means mu_1|T</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>sig_smooth <span class="op">=</span> [<span class="va">None</span>] <span class="op">*</span> (T<span class="op">+</span><span class="dv">1</span>)<span class="co"># represents sig_t|T; indexing 1 means sig_1|T</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a><span class="co"># set initial q_T and M_T</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>q.append(<span class="dv">0</span>)</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>M.append(<span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="0f95cd9a-818c-4e3e-b6a6-0f66f7e2e7e4" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(T, <span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>):</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    L_t <span class="op">=</span> (<span class="dv">1</span> <span class="op">-</span> K[t])</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># q  </span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    q_prev <span class="op">=</span> v[t]<span class="op">/</span>V[t] <span class="op">+</span> L_t<span class="op">*</span>q[t]</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    q[t<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> q_prev</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># smoothed state estimate </span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    mu_t <span class="op">=</span> mu_pred[t] <span class="op">+</span> (sig_pred[t] <span class="op">*</span> q[t<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    mu_smooth[t] <span class="op">=</span> mu_t</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># M </span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>    M_prev <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>V[t] <span class="op">+</span> ((L_t)<span class="op">**</span><span class="dv">2</span>)<span class="op">*</span>M[t]</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    M[t<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> M_prev</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># smoothed state variance estimate</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>    sig_t <span class="op">=</span> sig_pred[t] <span class="op">-</span> (sig_pred[t]<span class="op">**</span><span class="dv">2</span>)<span class="op">*</span>M[t<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>    sig_smooth[t] <span class="op">=</span> sig_t</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>        </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="6b69d436-7917-42ca-9cb5-7a17e97f3424" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(q[:<span class="dv">5</span>])</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(q[<span class="op">-</span><span class="dv">5</span>:])</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(M[:<span class="dv">5</span>])</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(M[<span class="op">-</span><span class="dv">5</span>:])</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mu[T]) <span class="co"># should be same as last value of mu_smooth</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mu_smooth[<span class="op">-</span><span class="dv">1</span>:])  </span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sig[T]) <span class="co"># should be same as last value of sig_smooth</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sig_smooth[<span class="op">-</span><span class="dv">1</span>:])</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(y.iloc[<span class="dv">0</span>]) </span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="co"># t = 1 of mu_smooth should be close to y_1</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="co"># t = 1 of sig_smooth should be finite and data-drivetn</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mu_smooth[<span class="dv">1</span>])   </span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sig_smooth[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1.2108900785268976e-06, -0.14981620717871003, -1.070143087385408, 3.3154833226574394, 5.894977293488771]
+[0.6329189291823907, -2.5431392654625062, 1.1319311056571293, 0.1326766248646112, 0]
+[9.999999672889873e-07, 3.7202388313041896, 6.46022092902277, 8.478237581462894, 9.964521456425608]
+[9.964521162357537, 8.478237182189057, 6.460220386904764, 3.7202380952380962, 0]
+1.227144114247882
+[1.227144114247882]
+0.03271101388799999
+[0.03271101388799999]
+1.24545058377224
+1.2108900785268977
+0.03271101275458932</code></pre>
+</div>
+</div>
+<div id="61462fc9-4d97-407c-ab78-c13e744caab4" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(mu))</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(mu_smooth))</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(sig))</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(sig_smooth))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>341
+341
+341
+341</code></pre>
+</div>
+</div>
+<div id="e3a0e651-e56e-461c-a1ae-8f8da7f15df8" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"filtered_state"</span>] <span class="op">=</span> mu[<span class="dv">1</span>:] </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="d60ebf19-074d-41ca-b110-9b47ebe33666" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"filtered_var"</span>] <span class="op">=</span> sig[<span class="dv">1</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="b6156535-076b-4443-b26b-97566dc11f55" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"smoothed_state"</span>] <span class="op">=</span> mu_smooth[<span class="dv">1</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="c5991ede-2dda-4034-83f6-8df40e09d373" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"smoothed_var"</span>] <span class="op">=</span> sig_smooth[<span class="dv">1</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="18e44de0-722d-42c6-86e3-b24747ddbefc" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>alcoa</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">x</th>
+<th data-quarto-table-cell-role="th">filtered_state</th>
+<th data-quarto-table-cell-role="th">filtered_var</th>
+<th data-quarto-table-cell-role="th">smoothed_state</th>
+<th data-quarto-table-cell-role="th">smoothed_var</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-02</td>
+<td>1.245451</td>
+<td>1.245450</td>
+<td>0.230684</td>
+<td>1.210890</td>
+<td>0.032711</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-03</td>
+<td>1.422385</td>
+<td>1.334942</td>
+<td>0.116678</td>
+<td>1.210080</td>
+<td>0.028730</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-06</td>
+<td>0.192602</td>
+<td>0.939611</td>
+<td>0.079833</td>
+<td>1.204296</td>
+<td>0.025799</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2003-01-07</td>
+<td>0.627168</td>
+<td>0.855311</td>
+<td>0.062240</td>
+<td>1.222216</td>
+<td>0.023639</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2003-01-08</td>
+<td>2.405115</td>
+<td>1.206724</td>
+<td>0.052307</td>
+<td>1.254077</td>
+<td>0.022049</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2004-05-03</td>
+<td>0.947518</td>
+<td>1.209930</td>
+<td>0.032711</td>
+<td>1.230634</td>
+<td>0.022049</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2004-05-04</td>
+<td>1.966721</td>
+<td>1.317243</td>
+<td>0.032711</td>
+<td>1.234054</td>
+<td>0.023639</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2004-05-05</td>
+<td>0.372529</td>
+<td>1.183283</td>
+<td>0.032711</td>
+<td>1.220309</td>
+<td>0.025799</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2004-05-06</td>
+<td>1.456939</td>
+<td>1.222087</td>
+<td>0.032711</td>
+<td>1.226427</td>
+<td>0.028730</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2004-05-07</td>
+<td>1.257751</td>
+<td>1.227144</td>
+<td>0.032711</td>
+<td>1.227144</td>
+<td>0.032711</td>
+</tr>
+</tbody>
+</table>
+
+<p>340 rows × 5 columns</p>
+</div>
+</div>
+</div>
+<div id="44b713e5-7934-4e95-ba6c-7fba2f1f09cb" class="cell" data-execution_count="69">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co"># observed</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>ax.plot(alcoa.index, alcoa[<span class="st">'x'</span>], color<span class="op">=</span><span class="st">'black'</span>, label<span class="op">=</span><span class="st">'Observed'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="co"># filtered</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>ax.plot(alcoa.index, alcoa[<span class="st">'filtered_state'</span>], color<span class="op">=</span><span class="st">'blue'</span>, label<span class="op">=</span><span class="st">'Filtered'</span>)</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothed</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>ax.plot(alcoa.index, alcoa[<span class="st">'smoothed_state'</span>], color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'Filtered'</span>)</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Log of Realized Volatility of Alcoa Stock with Filtered and Smoothed Estimates"</span>)</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="kalman_files/figure-html/cell-28-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="68f0c0a6-6176-4b74-ae75-1624e4cd3c84" class="cell" data-execution_count="47">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting up 95% confidence intervals of filtered and smoothed estimates </span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 95% conf interval = estimate +- 1.96 * standard deviation</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"filtered_95_ci_upper"</span>] <span class="op">=</span> alcoa[<span class="st">"filtered_state"</span>] <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>np.sqrt(alcoa[<span class="st">"filtered_var"</span>])</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"filtered_95_ci_lower"</span>] <span class="op">=</span> alcoa[<span class="st">"filtered_state"</span>] <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>np.sqrt(alcoa[<span class="st">"filtered_var"</span>])</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"smoothed_95_ci_upper"</span>] <span class="op">=</span> alcoa[<span class="st">"smoothed_state"</span>] <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span>np.sqrt(alcoa[<span class="st">"smoothed_var"</span>])</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>alcoa[<span class="st">"smoothed_95_ci_lower"</span>] <span class="op">=</span> alcoa[<span class="st">"smoothed_state"</span>] <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span>np.sqrt(alcoa[<span class="st">"smoothed_var"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="974f11dd-1e97-446c-ac32-24ef84ece5da" class="cell" data-scrolled="true" data-execution_count="84">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">10</span>))</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="co"># observed</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>ax1.plot(alcoa.index, alcoa[<span class="st">'x'</span>], color<span class="op">=</span><span class="st">'black'</span>, label<span class="op">=</span><span class="st">'Observed'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># filtered</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>ax1.plot(alcoa.index, alcoa[<span class="st">'filtered_state'</span>], color<span class="op">=</span><span class="st">'blue'</span>, label<span class="op">=</span><span class="st">'Filtered'</span>)</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>ax1.fill_between(alcoa.index, </span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>                alcoa[<span class="st">'filtered_95_ci_lower'</span>], </span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>                alcoa[<span class="st">'filtered_95_ci_upper'</span>], </span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.2</span>)<span class="op">;</span></span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Filtered Estimates of Log of Realized Volatility of Alcoa Stock + 95% CI Bands"</span>)</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="co"># observed</span></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>ax2.plot(alcoa.index, alcoa[<span class="st">'x'</span>], color<span class="op">=</span><span class="st">'black'</span>, label<span class="op">=</span><span class="st">'Observed'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothed</span></span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>ax2.plot(alcoa.index, alcoa[<span class="st">'smoothed_state'</span>], color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'Smoothed'</span>)</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>ax2.fill_between(alcoa.index, alcoa[<span class="st">'smoothed_95_ci_lower'</span>], alcoa[<span class="st">'smoothed_95_ci_upper'</span>], </span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.2</span>)<span class="op">;</span></span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>ax2.set_title(<span class="st">"Smoothed Estimates of Log of Realized Volatility of Alcoa Stock + 95% CI Bands"</span>)</span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-23"><a href="#cb44-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="kalman_files/figure-html/cell-30-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="0b19e84a-7e41-4941-ad72-ff7bd820eb80" class="cell" data-execution_count="67">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># observed</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ax.plot(alcoa.index, alcoa['x'], color='black', label='Observed', alpha=0.5)</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="co"># filtered</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>ax.plot(alcoa.index, alcoa[<span class="st">'filtered_state'</span>], color<span class="op">=</span><span class="st">'blue'</span>, label<span class="op">=</span><span class="st">'Filtered'</span>)</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>ax.fill_between(alcoa.index, </span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>                alcoa[<span class="st">'filtered_95_ci_lower'</span>], </span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>                alcoa[<span class="st">'filtered_95_ci_upper'</span>], </span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.2</span>)<span class="op">;</span></span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothed</span></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>ax.plot(alcoa.index, alcoa[<span class="st">'smoothed_state'</span>], color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'Smoothed'</span>)</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>ax.fill_between(alcoa.index, alcoa[<span class="st">'smoothed_95_ci_lower'</span>], alcoa[<span class="st">'smoothed_95_ci_upper'</span>], </span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.2</span>)</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Filtered and Smoothed Estimates of Log of Realized Volatility of Alcoa Stock + 95% CI Bands"</span>)</span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="kalman_files/figure-html/cell-31-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="lets-do-some-prediction" class="level3">
+<h3 class="anchored" data-anchor-id="lets-do-some-prediction">4) Let’s do some prediction</h3>
+<p>To predict <span class="math inline">\(h\)</span> time steps forward, the process is quite simple.</p>
+<p>Normally, we would run our filter at each time step, taking in the observation at that point <span class="math inline">\(y_t\)</span> and computing <span class="math inline">\(v, V, K\)</span> to get our estimates <span class="math inline">\(\mu_{t|t}\)</span> and <span class="math inline">\(\Sigma_{t|t}\)</span>, and then running our predict step to find <span class="math inline">\(\mu_{t+1|t}\)</span> and <span class="math inline">\(\Sigma_{t+1|t}\)</span></p>
+<p>However, for predicting <span class="math inline">\(y\)</span> at <span class="math inline">\(h\)</span> steps ahead, we have no observation <span class="math inline">\(y_{t+h}\)</span> to input. Thus, we skip the entire estimation step– our estimates are not updated because there’s no observation to change our beliefs–and only run our predict steps <span class="math inline">\(h\)</span> times.</p>
+<p>So for one step ahead, we simply run:</p>
+<ul>
+<li><span class="math inline">\(\mu_{T + 1|T} = \mu_{T|T}\)</span></li>
+<li><span class="math inline">\(\Sigma_{T + 1|T} = \Sigma_{T|T} + \sigma^2_{\eta}\)</span></li>
+</ul>
+<p>(notice the estimate <span class="math inline">\(\mu\)</span> doesn’t change, it just gets carried forward, and the variance <span class="math inline">\(\Sigma\)</span> adds a transition noise term).</p>
+<p>And for <span class="math inline">\(h\)</span> steps ahead, our Kalman recursion simplifies to:</p>
+<ul>
+<li><span class="math inline">\(\mu_{T + h|T} = \mu_{T|T}\)</span></li>
+<li><span class="math inline">\(\Sigma_{T + h|T} = \Sigma_{T|T} + h * \sigma^2_{\eta}\)</span></li>
+</ul>
+<p>(our estimate stays the same as what it was when we last had an observation and our variance increases exponentially with each step)</p>
+<p>Now we have a belief about where the hidden state <span class="math inline">\(\mu\)</span> will be at time <span class="math inline">\(T+h\)</span>, given all data up to <span class="math inline">\(T\)</span>. But you can’t observe <span class="math inline">\(\mu\)</span>, only <span class="math inline">\(y\)</span> so we need to use the observation equation:</p>
+<p><span class="math display">\[y_{T+h} = \mu_{T+h} + e_{T+h} \]</span></p>
+<p>So our forecast of <span class="math inline">\(y\)</span> is:</p>
+<ul>
+<li>$<em>{T+h} = E(y</em>{T+h}) + E(e_{T+h}) = <em>{T + h|T} + 0 = </em>{T + h|T} $</li>
+</ul>
+<p>and variance of forecast error (how uncertain we are of <span class="math inline">\(y_t\)</span> given <span class="math inline">\(\mu\)</span>) is:</p>
+<ul>
+<li><p><span class="math inline">\(y_{T+h} - \hat{y}_{T+h} = (\mu_{T+h} + e_{T+h}) - \mu_{T+h|T}\)</span></p>
+<p><span class="math inline">\(= (\mu_{T+h} - \mu_{T+h|T}) + e_{T+h}\)</span></p></li>
+<li><p><span class="math inline">\(V_{T+h} = Var(y_{T+h} - \hat{y}_{T+h}) = Var(\mu_{T+h} - \mu_{T+h|T}) + Var(e_{T+h})\)</span></p>
+<p><span class="math inline">\(= Var(\mu_{T+h} \mid y_1, \dots, y_T) + \sigma_e^2\)</span></p>
+<p><span class="math inline">\(= \Sigma_{T+h|T} + \sigma_e^2\)</span></p></li>
+</ul>
+<p>Plugging in <span class="math inline">\(\mu_{T + h|T}\)</span> and <span class="math inline">\(\Sigma_{T+h|T}\)</span>, our h-step forecast of <span class="math inline">\(y\)</span> is</p>
+<ul>
+<li><p><span class="math inline">\(\hat{y}_{T+h} = \mu_{T|T}\)</span></p>
+<p>with forecast error variance</p></li>
+<li><p>$ V_{T+h} = <em>{T|T} + h^2</em>{} + _e^2$</p></li>
+</ul>
+<p>Let’s try to predict 10 steps ahead.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -191,7 +191,7 @@ window.Quarto = {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="analysis">analysis <span class="quarto-category-count">(1)</span></div><div class="category" data-category="code">code <span class="quarto-category-count">(1)</span></div><div class="category" data-category="news">news <span class="quarto-category-count">(2)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(1)</span></div><div class="category" data-category="code">code <span class="quarto-category-count">(1)</span></div><div class="category" data-category="time series analysis">time series analysis <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
 
@@ -205,74 +205,38 @@ window.Quarto = {
 
 <div class="quarto-listing quarto-listing-container-default" id="listing-listing">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="news,code,analysis" data-listing-date-sort="1779894000000" data-listing-file-modified-sort="1779902875260" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="7">
+<div class="quarto-post image-right" data-index="0" data-categories="code,time series analysis" data-listing-date-sort="1777561200000" data-listing-file-modified-sort="1780157952427" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2431">
 <div class="thumbnail">
-<p><a href="./posts/post-with-code/index.html" class="no-external"></a></p><a href="./posts/post-with-code/index.html" class="no-external">
-<p><img loading="lazy" src="./posts/post-with-code/image.jpg" class="thumbnail-image"></p>
-</a><p><a href="./posts/post-with-code/index.html" class="no-external"></a></p>
+<p><a href="./posts/kalman_local_trend/index.html" class="no-external"></a></p><a href="./posts/kalman_local_trend/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/kalman_local_trend/index_files/figure-html/cell-6-output-1.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/kalman_local_trend/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
 <h3 class="no-anchor listing-title">
-<a href="./posts/post-with-code/index.html" class="no-external">Post With Code</a>
+<a href="./posts/kalman_local_trend/index.html" class="no-external">State-Space Models and Kalman Filtering: Local Trend Model Manual Implementation</a>
 </h3>
 <div class="listing-subtitle">
-<a href="./posts/post-with-code/index.html" class="no-external"></a>
+<a href="./posts/kalman_local_trend/index.html" class="no-external"></a>
 </div>
 <div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('news'); return false;">
-news
-</div>
 <div class="listing-category" onclick="window.quartoListingCategory('code'); return false;">
 code
 </div>
-<div class="listing-category" onclick="window.quartoListingCategory('analysis'); return false;">
-analysis
+<div class="listing-category" onclick="window.quartoListingCategory('time series analysis'); return false;">
+time series analysis
 </div>
 </div>
 <div class="listing-description">
-<a href="./posts/post-with-code/index.html" class="no-external">This is a post with executable code.</a>
+<a href="./posts/kalman_local_trend/index.html" class="no-external">In this post, I’ll be walking through an implementation of Kalman filtering and smoothing as well as prediction for a local trend model imposed on log volatility of stock…<em></em></a>
 </div>
 </div>
 <div class="metadata">
-<a href="./posts/post-with-code/index.html" class="no-external">
+<a href="./posts/kalman_local_trend/index.html" class="no-external">
 <div class="listing-date">
-May 28, 2026
+May 1, 2026
 </div>
 <div class="listing-author">
-Harlow Malloc
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="news" data-listing-date-sort="1779634800000" data-listing-file-modified-sort="1779902875260" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="32">
-<div class="thumbnail">
-<p><a href="./posts/welcome/index.html" class="no-external"></a></p><a href="./posts/welcome/index.html" class="no-external">
-<p class="card-img-top"><img src="posts/welcome/thumbnail.jpg"  class="thumbnail-image card-img"/></p>
-</a><p><a href="./posts/welcome/index.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/welcome/index.html" class="no-external">Welcome To My Blog</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/welcome/index.html" class="no-external"></a>
-</div>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('news'); return false;">
-news
-</div>
-</div>
-<div class="listing-description">
-<a href="./posts/welcome/index.html" class="no-external">This is the first post in a Quarto blog. Welcome!</a>
-</div>
-</div>
-<div class="metadata">
-<a href="./posts/welcome/index.html" class="no-external">
-<div class="listing-date">
-May 25, 2026
-</div>
-<div class="listing-author">
-Tristan O’Malley
+Caleb Williams
 </div>
 </a>
 </div>
@@ -374,7 +338,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
+      var filterRegex = new RegExp("https:\/\/calebjwilliams\.github\.io\/");
     var isInternal = (href) => {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
