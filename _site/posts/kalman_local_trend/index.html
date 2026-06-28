@@ -9,7 +9,7 @@
 <meta name="author" content="Caleb Williams">
 <meta name="dcterms.date" content="2026-05-01">
 
-<title>State-Space Models and Kalman Filtering: Local Trend Model Manual Implementation – Tech Blog</title>
+<title>State-Space Models and Kalman Filtering: Local Trend Models – Tech Blog</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -182,7 +182,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">State-Space Models and Kalman Filtering: Local Trend Model Manual Implementation</h1>
+      <h1 class="title">State-Space Models and Kalman Filtering: Local Trend Models</h1>
                                 <div class="quarto-categories">
                 <div class="quarto-category">code</div>
                 <div class="quarto-category">time series analysis</div>
@@ -232,8 +232,8 @@ window.Quarto = {
 </ol>
 <p>First we’ll look at the most basic state-space model: the local trend model</p>
 </section>
-<section id="local-trend-model" class="level2">
-<h2 class="anchored" data-anchor-id="local-trend-model">Local Trend Model</h2>
+<section id="the-local-trend-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-local-trend-model">The Local Trend Model</h2>
 <p><span class="math display">\[
 y_t = \mu_t + e_t, \quad e_t \sim N(0, \sigma^2_e), \tag{11.1}
 \]</span> <span class="math display">\[
@@ -1027,7 +1027,7 @@ y_t = \mu_t + e_t, \quad e_t \sim N(0, \sigma^2_e)
 <h3 class="anchored" data-anchor-id="step-6-lets-do-some-prediction">Step 6: Let’s Do Some Prediction</h3>
 <p>To predict <span class="math inline">\(h\)</span> time steps forward, the process is quite simple.</p>
 <p>Normally, we would run our filter at each time step, taking in the observation at that point <span class="math inline">\(y_t\)</span> and computing <span class="math inline">\(v, V, K\)</span> to get our estimates <span class="math inline">\(\mu_{t|t}\)</span> and <span class="math inline">\(\Sigma_{t|t}\)</span>, and then running our predict step to find <span class="math inline">\(\mu_{t+1|t}\)</span> and <span class="math inline">\(\Sigma_{t+1|t}\)</span></p>
-<p>However, for predicting <span class="math inline">\(y\)</span> at <span class="math inline">\(h\)</span> steps ahead, we have no observation <span class="math inline">\(y_{t+h}\)</span> to input. Thus, we skip the entire estimation step–our estimates are not updated because there’s no observation to change our beliefs–and only run our predict steps <span class="math inline">\(h\)</span> times.</p>
+<p>However, for predicting <span class="math inline">\(y\)</span> at <span class="math inline">\(h\)</span> steps ahead, we have no observation <span class="math inline">\(y_{T+h}\)</span> to input. Thus, we skip the entire estimation step–our estimates are not updated because there’s no observation to change our beliefs–and only run our predict steps <span class="math inline">\(h\)</span> times.</p>
 <p>So for one step ahead, we simply run:</p>
 <ul>
 <li><span class="math inline">\(\mu_{T + 1|T} = \mu_{T|T}\)</span></li>
@@ -1044,11 +1044,11 @@ y_t = \mu_t + e_t, \quad e_t \sim N(0, \sigma^2_e)
 <p><span class="math display">\[y_{T+h} = \mu_{T+h} + e_{T+h} \]</span></p>
 <p>So our forecast of <span class="math inline">\(y\)</span> is:</p>
 <ul>
-<li><span class="math inline">\(\hat{y}_{T+h} = E(y_{T+h}) + E(e_{T+h}) = \mu_{T+h|T} + 0 = \mu_{T+h|T}\)</span></li>
+<li><span class="math inline">\(\hat{y}_{T+h} = E(\mu_{T+h}) + E(e_{T+h}) = \mu_{T+h|T} + 0 = \mu_{T+h|T}\)</span></li>
 </ul>
-<p>and variance of forecast error (how uncertain we are of <span class="math inline">\(y_t\)</span> given <span class="math inline">\(\mu\)</span>) is:</p>
+<p>and innovation/forecast error and variance of forecast error (how uncertain we are of <span class="math inline">\(y_t\)</span> given <span class="math inline">\(\mu\)</span>) are:</p>
 <ul>
-<li><p><span class="math inline">\(y_{T+h} - \hat{y}_{T+h} = (\mu_{T+h} + e_{T+h}) - \mu_{T+h|T}\)</span></p>
+<li><p><span class="math inline">\(v_{T+h} = y_{T+h} - \hat{y}_{T+h} = (\mu_{T+h} + e_{T+h}) - \mu_{T+h|T}\)</span></p>
 <p><span class="math inline">\(= (\mu_{T+h} - \mu_{T+h|T}) + e_{T+h}\)</span></p></li>
 <li><p><span class="math inline">\(V_{T+h} = Var(y_{T+h} - \hat{y}_{T+h}) = Var(\mu_{T+h} - \mu_{T+h|T}) + Var(e_{T+h})\)</span></p>
 <p><span class="math inline">\(= Var(\mu_{T+h} \mid y_1, \dots, y_T) + \sigma_e^2\)</span></p>
@@ -1342,7 +1342,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp("https:\/\/calebjwilliams\.github\.io\/");
+      var filterRegex = new RegExp('/' + window.location.host + '/');
     var isInternal = (href) => {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }

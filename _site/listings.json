@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/kalman_linear/index.html",
       "/posts/kalman_local_trend/index.html"
     ]
   }
