@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Caleb Williams">
+<meta name="dcterms.date" content="2026-07-14">
+
+<title>World Cup Results and Stock Market Returns: A Difference-in-Differences Study – Tech Blog</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.ico" rel="icon">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Tech Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">World Cup Results and Stock Market Returns: A Difference-in-Differences Study</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">code</div>
+                <div class="quarto-category">R</div>
+                <div class="quarto-category">Project</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Caleb Williams </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 14, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
+  <ul class="collapse">
+  <li><a href="#question-and-motivation" id="toc-question-and-motivation" class="nav-link" data-scroll-target="#question-and-motivation">Question and Motivation</a></li>
+  <li><a href="#methodology" id="toc-methodology" class="nav-link" data-scroll-target="#methodology">Methodology</a>
+  <ul class="collapse">
+  <li><a href="#the-model" id="toc-the-model" class="nav-link" data-scroll-target="#the-model">The Model</a></li>
+  <li><a href="#identifying-assumptions" id="toc-identifying-assumptions" class="nav-link" data-scroll-target="#identifying-assumptions">Identifying Assumptions</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#preparing-the-dataset" id="toc-preparing-the-dataset" class="nav-link" data-scroll-target="#preparing-the-dataset">Preparing the Dataset</a></li>
+  <li><a href="#modeling" id="toc-modeling" class="nav-link" data-scroll-target="#modeling">Modeling</a></li>
+  <li><a href="#robustness-checks" id="toc-robustness-checks" class="nav-link" data-scroll-target="#robustness-checks">Robustness Checks</a>
+  <ul class="collapse">
+  <li><a href="#identification-parallel-trends" id="toc-identification-parallel-trends" class="nav-link" data-scroll-target="#identification-parallel-trends">Identification: Parallel Trends</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a>
+  <ul class="collapse">
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation">Interpretation</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>This post is a walkthrough of my final project for Prof.&nbsp;Arikawa’s <em>Microeconometrics</em> course at Waseda Business School.</p>
+<section id="question-and-motivation" class="level2">
+<h2 class="anchored" data-anchor-id="question-and-motivation">Question and Motivation</h2>
+<p>Soccer (“football”) is the most popular sport in the world, both by players and viewers, and the FIFA World Cup is the largest, most viewed sporting event, held every 4 years.</p>
+<p>This year’s tournament, which is the largest ever in its history, brought together teams representing 48 different countries, and has seen historic viewership, with wins and losses of teams bringing hype and discourse among fans and non-fans alike.</p>
+<p>I wanted to see if a teams’ loss in the World Cup had further reaching implications, specifically, whether or not a loss or win has an effect on that country’s stock market performance.</p>
+<p>My research question has 3 parts:</p>
+<ol type="1">
+<li>Does a country losing a World Cup match affect its stock market?</li>
+<li>Does a country winning affect its stock market?</li>
+<li>Does the size of the result matter–do bigger wins/losses move the market more?</li>
+</ol>
+<p>This question is motivated by the idea that investor sentiment–the collective mood of market participants–can influence financial markets, even when that mood has nothing to do with economic fundamentals. Under this “sentiment hypothesis,” a shared emotional shock like a national team’s defeat could depress a country’s stock market the next day, whereas the competing view of market efficiency holds that prices reflect only fundamentals and should be unmoved by a football result. Prior work supports the former: Edmans, García and Norli (2007) find that national stock markets tend to fall after their team is eliminated from the World Cup.</p>
+<p>This project revisits that finding. Rather than focusing on elimination alone, I examine the effect of all match results (wins, losses, and draws) across a more recent set of tournaments (2002 - 2026), using a two-way fixed-effects difference-in-differences design. In doing so I test whether the sentiment effect documented by Edmans et al.&nbsp;generalises beyond elimination games and persists in this period.</p>
+</section>
+<section id="methodology" class="level2">
+<h2 class="anchored" data-anchor-id="methodology">Methodology</h2>
+<p>The challenge in answering these questions is separating the effect of a match result from everything else moving a stock market on a given day. If I simply looked at a country’s market before and after a loss, I couldn’t tell whether any change was caused by the loss, or by a completely unrelated cause–a global market swing, an interest-rate announcement, an oil price move–that would have happened regardless.</p>
+<p>My strategy is to compare the market of a country that just lost against the markets of every other country on that same day. My assumption is that those other countries faced the same global conditions but did not just lose a match, so they show me what the losing country’s market “would have done” absent the result. The difference between them is what I attribute to the match.</p>
+<p>To be specific, this comparison is a <strong>difference-in-differences (DiD)</strong> design, implemented as a <strong>two-way fixed effects (TWFE)</strong> regression. The two differences are handled by two sets of fixed effects:</p>
+<ul>
+<li><p>a <strong>country fixed effect</strong> removes each market’s own baseline–some markets are simply more volatile or trend differently, and I don’t want those differences contaminating the comparison</p></li>
+<li><p>a <strong>date fixed effect</strong> removes whatever happened to <em>all</em> markets on a given day. This is my control group: it absorbs global shocks common to every country, so that a worldwide trend is accounted for</p></li>
+</ul>
+<p>After removing each country’s baseline and common movement, what remains should be just the effect specific to having just won/lost.</p>
+<section id="the-model" class="level3">
+<h3 class="anchored" data-anchor-id="the-model">The Model</h3>
+<p>For each research question I will estimate: <span class="math display">\[return_{i,t} = \eta_i + \theta_t + \beta_{treat}D_{i,t} + \epsilon_{i,t}\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(return_{i,t}\)</span> = the daily stock-index return of country <span class="math inline">\(i\)</span> on day <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\eta_i\)</span> = country fixed effect</li>
+<li><span class="math inline">\(\theta_t\)</span> = date fixed effect</li>
+<li><span class="math inline">\(D_{i,t}\)</span> = treatment indicator equal to 1 on first trading day after country <span class="math inline">\(i\)</span>’s team lost/won, and 0 otherwise</li>
+<li><span class="math inline">\(\beta_{treat}\)</span> = the average effect of a match win/loss on next-day returns</li>
+</ul>
+<p>A given country’s daily returns are correlated over time, so I cluster standard errors by country. This avoids treating correlated observations as independent, which would understate the true uncertainty and overstate significance.</p>
+<p>I assign each result to the <strong>next</strong> trading day after the match. Because most matches finish outside or near the end of the relevant market’s trading hours, the next session is when a reaction would typically first appear. This is an approximation, exact kickoff times and time-zone differences mean a market could occasionally still be open when a match ends, but it is a reasonable and consistent rule across all matches.</p>
+<p>For Question 3, I add the goal margin, the difference in goals scored and goals allowed (signed so that a loss is negative), interacted with the treatment, letting the effect scale with how large the win or loss was.</p>
+</section>
+<section id="identifying-assumptions" class="level3">
+<h3 class="anchored" data-anchor-id="identifying-assumptions">Identifying Assumptions</h3>
+<p>DiD relies on two assumptions. The first is <strong>no anticipation</strong>: the result has no effect on the market before the match is played. The second is <strong>parallel trends</strong>: absent the match result, the treated country’s market would have moved in line with the others.</p>
+<p>No anticipation is especially credible in this setting. Unlike an announced policy change, a World Cup result is genuinely unknown until the match is played, meaning markets cannot price in a win or loss that has not yet occurred. The pre-match period therefore reflects untreated behaviour by construction.</p>
+<p>I can’t directly test parallel trends, but I can assess it with an <strong>event-study version</strong> of the same regression, which estimates the effect separately for each day around the match. If the coefficients for the days before the result are small and statistically indistinguishable from zero, that supports the parallel-trends assumption–nothing was diverging before the match and is also consistent with no anticipation, since it shows no reaction before the result was known. This leaves the post-match movement as the plausible effect.</p>
+</section>
+</section>
+</section>
+<section id="preparing-the-dataset" class="level1">
+<h1>Preparing the Dataset</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">"worldcup"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"jfjelstul/worldcup"</span>) <span class="co"># database for matches</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(worldcup)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyquant)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">67</span>) <span class="co"># for reproducibility</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I use the <code>worldcup</code> package for match data, <code>tidyquant</code> to pull stock prices, and <code>fixest</code> to run the fixed-effects models.</p>
+<p>Match data comes from the Fjelstul World Cup Database (Fjelstul, 2023), accessed via the worldcup package. Its team_appearances table has one row per team per match, so each game appears twice, once from each team’s side.</p>
+<p>I keep men’s tournaments from 2002 onward, since reliable daily stock data for most countries doesn’t extend earlier. I also record each result’s goal margin, signed so that a loss is negative.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get team appearances data from worldcup package</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ta <span class="ot">&lt;-</span> worldcup<span class="sc">::</span>team_appearances</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>results_hist <span class="ot">&lt;-</span> ta <span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(tournament_name, <span class="st">"Men's"</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>         <span class="fu">as.integer</span>(<span class="fu">str_sub</span>(tournament_name, <span class="dv">1</span>, <span class="dv">4</span>)) <span class="sc">&gt;=</span> <span class="dv">2002</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">world_cup =</span> <span class="fu">as.integer</span>(<span class="fu">str_sub</span>(tournament_name, <span class="dv">1</span>, <span class="dv">4</span>)),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">match_date =</span> <span class="fu">ymd</span>(match_date),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">team =</span> team_name,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">opponent =</span> opponent_name,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">stage =</span> stage_name,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">knockout =</span> <span class="fu">as.integer</span>(knockout_stage),</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">result =</span> result, <span class="co"># win/lose/draw</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">penalty_shootout =</span> <span class="fu">as.integer</span>(penalty_shootout),</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">goals_for =</span> goals_for,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">goals_against =</span> goals_against,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">margin =</span> goals_for <span class="sc">-</span> goals_against, <span class="co"># negative for a loss</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(world_cup, match_date, team)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(results_hist)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 768  11</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(results_hist)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 11
+  world_cup match_date team      opponent stage knockout result penalty_shootout
+      &lt;int&gt; &lt;date&gt;     &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;    &lt;int&gt; &lt;chr&gt;             &lt;int&gt;
+1      2002 2002-05-31 France    Senegal  grou…        0 lose                  0
+2      2002 2002-05-31 Senegal   France   grou…        0 win                   0
+3      2002 2002-06-01 Cameroon  Republi… grou…        0 draw                  0
+4      2002 2002-06-01 Denmark   Uruguay  grou…        0 win                   0
+5      2002 2002-06-01 Germany   Saudi A… grou…        0 win                   0
+6      2002 2002-06-01 Republic… Cameroon grou…        0 draw                  0
+# ℹ 3 more variables: goals_for &lt;dbl&gt;, goals_against &lt;dbl&gt;, margin &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>So from historical matches (2002 - 2022), I have 768 team-match observations.</p>
+<p>I want to include this year’s World Cup match results so far, but since Fjelstul’s database doesn’t include those yet, I have to add those manually (taking from wikipedia/FIFA’s Official website):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># manually adding this year's world cup matches (so far)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>wc2026 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>world_cup, <span class="sc">~</span>match_date, <span class="sc">~</span>team, <span class="sc">~</span>opponent, <span class="sc">~</span>stage, <span class="sc">~</span>knockout, <span class="sc">~</span>result, <span class="sc">~</span>penalty_shootout, <span class="sc">~</span>goals_for, <span class="sc">~</span>goals_against,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-11"</span>, <span class="st">"Mexico"</span>, <span class="st">"South Africa"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-11"</span>, <span class="st">"South Africa"</span>, <span class="st">"Mexico"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-11"</span>, <span class="st">"South Korea"</span>, <span class="st">"Czech Republic"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-11"</span>, <span class="st">"Czech Republic"</span>, <span class="st">"South Korea"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-12"</span>, <span class="st">"Canada"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-12"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"Canada"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-12"</span>, <span class="st">"United States"</span>, <span class="st">"Paraguay"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-12"</span>, <span class="st">"Paraguay"</span>, <span class="st">"United States"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Qatar"</span>, <span class="st">"Switzerland"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Switzerland"</span>, <span class="st">"Qatar"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Brazil"</span>, <span class="st">"Morocco"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Morocco"</span>, <span class="st">"Brazil"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Haiti"</span>, <span class="st">"Scotland"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Scotland"</span>, <span class="st">"Haiti"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Australia"</span>, <span class="st">"Turkey"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-13"</span>, <span class="st">"Turkey"</span>, <span class="st">"Australia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Germany"</span>, <span class="st">"Curacao"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">7</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Curacao"</span>, <span class="st">"Germany"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">7</span>L,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"Ecuador"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Ecuador"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Netherlands"</span>, <span class="st">"Japan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Japan"</span>, <span class="st">"Netherlands"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Sweden"</span>, <span class="st">"Tunisia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">5</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-14"</span>, <span class="st">"Tunisia"</span>, <span class="st">"Sweden"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">5</span>L,</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Belgium"</span>, <span class="st">"Egypt"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Egypt"</span>, <span class="st">"Belgium"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Iran"</span>, <span class="st">"New Zealand"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"New Zealand"</span>, <span class="st">"Iran"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Spain"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"Spain"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Saudi Arabia"</span>, <span class="st">"Uruguay"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-15"</span>, <span class="st">"Uruguay"</span>, <span class="st">"Saudi Arabia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"France"</span>, <span class="st">"Senegal"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Senegal"</span>, <span class="st">"France"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Iraq"</span>, <span class="st">"Norway"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Norway"</span>, <span class="st">"Iraq"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Argentina"</span>, <span class="st">"Algeria"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Algeria"</span>, <span class="st">"Argentina"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Austria"</span>, <span class="st">"Jordan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-16"</span>, <span class="st">"Jordan"</span>, <span class="st">"Austria"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"Portugal"</span>, <span class="st">"DR Congo"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"DR Congo"</span>, <span class="st">"Portugal"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"Uzbekistan"</span>, <span class="st">"Colombia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"Colombia"</span>, <span class="st">"Uzbekistan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"England"</span>, <span class="st">"Croatia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"Croatia"</span>, <span class="st">"England"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"Ghana"</span>, <span class="st">"Panama"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-17"</span>, <span class="st">"Panama"</span>, <span class="st">"Ghana"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"Czech Republic"</span>, <span class="st">"South Africa"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"South Africa"</span>, <span class="st">"Czech Republic"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"Mexico"</span>, <span class="st">"South Korea"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"South Korea"</span>, <span class="st">"Mexico"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"Switzerland"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"Switzerland"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"Canada"</span>, <span class="st">"Qatar"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">6</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-18"</span>, <span class="st">"Qatar"</span>, <span class="st">"Canada"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">6</span>L,</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Scotland"</span>, <span class="st">"Morocco"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Morocco"</span>, <span class="st">"Scotland"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Brazil"</span>, <span class="st">"Haiti"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Haiti"</span>, <span class="st">"Brazil"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"United States"</span>, <span class="st">"Australia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Australia"</span>, <span class="st">"United States"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Turkey"</span>, <span class="st">"Paraguay"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-19"</span>, <span class="st">"Paraguay"</span>, <span class="st">"Turkey"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Germany"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"Germany"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Ecuador"</span>, <span class="st">"Curacao"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Curacao"</span>, <span class="st">"Ecuador"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Netherlands"</span>, <span class="st">"Sweden"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">5</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Sweden"</span>, <span class="st">"Netherlands"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">5</span>L,</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Tunisia"</span>, <span class="st">"Japan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-20"</span>, <span class="st">"Japan"</span>, <span class="st">"Tunisia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Belgium"</span>, <span class="st">"Iran"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Iran"</span>, <span class="st">"Belgium"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"New Zealand"</span>, <span class="st">"Egypt"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Egypt"</span>, <span class="st">"New Zealand"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Spain"</span>, <span class="st">"Saudi Arabia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Saudi Arabia"</span>, <span class="st">"Spain"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Uruguay"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-21"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"Uruguay"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"France"</span>, <span class="st">"Iraq"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Iraq"</span>, <span class="st">"France"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Norway"</span>, <span class="st">"Senegal"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Senegal"</span>, <span class="st">"Norway"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Argentina"</span>, <span class="st">"Austria"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Austria"</span>, <span class="st">"Argentina"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Jordan"</span>, <span class="st">"Algeria"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-22"</span>, <span class="st">"Algeria"</span>, <span class="st">"Jordan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"Portugal"</span>, <span class="st">"Uzbekistan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">5</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"Uzbekistan"</span>, <span class="st">"Portugal"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">5</span>L,</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"Colombia"</span>, <span class="st">"DR Congo"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"DR Congo"</span>, <span class="st">"Colombia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"England"</span>, <span class="st">"Ghana"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"Ghana"</span>, <span class="st">"England"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"Panama"</span>, <span class="st">"Croatia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-23"</span>, <span class="st">"Croatia"</span>, <span class="st">"Panama"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Czech Republic"</span>, <span class="st">"Mexico"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Mexico"</span>, <span class="st">"Czech Republic"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"South Africa"</span>, <span class="st">"South Korea"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"South Korea"</span>, <span class="st">"South Africa"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Switzerland"</span>, <span class="st">"Canada"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Canada"</span>, <span class="st">"Switzerland"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"Qatar"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Qatar"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Scotland"</span>, <span class="st">"Brazil"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Brazil"</span>, <span class="st">"Scotland"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Morocco"</span>, <span class="st">"Haiti"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-24"</span>, <span class="st">"Haiti"</span>, <span class="st">"Morocco"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Turkey"</span>, <span class="st">"United States"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"United States"</span>, <span class="st">"Turkey"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Paraguay"</span>, <span class="st">"Australia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Australia"</span>, <span class="st">"Paraguay"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Curacao"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"Curacao"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Ecuador"</span>, <span class="st">"Germany"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Germany"</span>, <span class="st">"Ecuador"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Japan"</span>, <span class="st">"Sweden"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Sweden"</span>, <span class="st">"Japan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Tunisia"</span>, <span class="st">"Netherlands"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-25"</span>, <span class="st">"Netherlands"</span>, <span class="st">"Tunisia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Egypt"</span>, <span class="st">"Iran"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Iran"</span>, <span class="st">"Egypt"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"New Zealand"</span>, <span class="st">"Belgium"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">5</span>L,</span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Belgium"</span>, <span class="st">"New Zealand"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">5</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"Saudi Arabia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Saudi Arabia"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Uruguay"</span>, <span class="st">"Spain"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Spain"</span>, <span class="st">"Uruguay"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Norway"</span>, <span class="st">"France"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"France"</span>, <span class="st">"Norway"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Senegal"</span>, <span class="st">"Iraq"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">5</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-26"</span>, <span class="st">"Iraq"</span>, <span class="st">"Senegal"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">5</span>L,</span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Algeria"</span>, <span class="st">"Austria"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Austria"</span>, <span class="st">"Algeria"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Jordan"</span>, <span class="st">"Argentina"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Argentina"</span>, <span class="st">"Jordan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Colombia"</span>, <span class="st">"Portugal"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Portugal"</span>, <span class="st">"Colombia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"draw"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"DR Congo"</span>, <span class="st">"Uzbekistan"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Uzbekistan"</span>, <span class="st">"DR Congo"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Panama"</span>, <span class="st">"England"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"England"</span>, <span class="st">"Panama"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Croatia"</span>, <span class="st">"Ghana"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-27"</span>, <span class="st">"Ghana"</span>, <span class="st">"Croatia"</span>, <span class="st">"group stage"</span>, <span class="dv">0</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-28"</span>, <span class="st">"Canada"</span>, <span class="st">"South Africa"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-28"</span>, <span class="st">"South Africa"</span>, <span class="st">"Canada"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-29"</span>, <span class="st">"Brazil"</span>, <span class="st">"Japan"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-29"</span>, <span class="st">"Japan"</span>, <span class="st">"Brazil"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-29"</span>, <span class="st">"Paraguay"</span>, <span class="st">"Germany"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">1</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-29"</span>, <span class="st">"Germany"</span>, <span class="st">"Paraguay"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">1</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-29"</span>, <span class="st">"Morocco"</span>, <span class="st">"Netherlands"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">1</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-29"</span>, <span class="st">"Netherlands"</span>, <span class="st">"Morocco"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">1</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-30"</span>, <span class="st">"Norway"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-30"</span>, <span class="st">"Ivory Coast"</span>, <span class="st">"Norway"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-30"</span>, <span class="st">"France"</span>, <span class="st">"Sweden"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-30"</span>, <span class="st">"Sweden"</span>, <span class="st">"France"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-30"</span>, <span class="st">"Mexico"</span>, <span class="st">"Ecuador"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-06-30"</span>, <span class="st">"Ecuador"</span>, <span class="st">"Mexico"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-01"</span>, <span class="st">"England"</span>, <span class="st">"DR Congo"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-01"</span>, <span class="st">"DR Congo"</span>, <span class="st">"England"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-01"</span>, <span class="st">"Belgium"</span>, <span class="st">"Senegal"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-01"</span>, <span class="st">"Senegal"</span>, <span class="st">"Belgium"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-01"</span>, <span class="st">"United States"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-01"</span>, <span class="st">"Bosnia and Herzegovina"</span>, <span class="st">"United States"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-02"</span>, <span class="st">"Spain"</span>, <span class="st">"Austria"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-02"</span>, <span class="st">"Austria"</span>, <span class="st">"Spain"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-02"</span>, <span class="st">"Portugal"</span>, <span class="st">"Croatia"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-02"</span>, <span class="st">"Croatia"</span>, <span class="st">"Portugal"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-02"</span>, <span class="st">"Switzerland"</span>, <span class="st">"Algeria"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-02"</span>, <span class="st">"Algeria"</span>, <span class="st">"Switzerland"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-03"</span>, <span class="st">"Egypt"</span>, <span class="st">"Australia"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">1</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-03"</span>, <span class="st">"Australia"</span>, <span class="st">"Egypt"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">1</span>L, <span class="dv">1</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-03"</span>, <span class="st">"Argentina"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-03"</span>, <span class="st">"Cape Verde"</span>, <span class="st">"Argentina"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-03"</span>, <span class="st">"Colombia"</span>, <span class="st">"Ghana"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-03"</span>, <span class="st">"Ghana"</span>, <span class="st">"Colombia"</span>, <span class="st">"round of 32"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-04"</span>, <span class="st">"Morocco"</span>, <span class="st">"Canada"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-04"</span>, <span class="st">"Canada"</span>, <span class="st">"Morocco"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-04"</span>, <span class="st">"France"</span>, <span class="st">"Paraguay"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-04"</span>, <span class="st">"Paraguay"</span>, <span class="st">"France"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-05"</span>, <span class="st">"Norway"</span>, <span class="st">"Brazil"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-05"</span>, <span class="st">"Brazil"</span>, <span class="st">"Norway"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-05"</span>, <span class="st">"England"</span>, <span class="st">"Mexico"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-188"><a href="#cb7-188" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-05"</span>, <span class="st">"Mexico"</span>, <span class="st">"England"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-189"><a href="#cb7-189" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-06"</span>, <span class="st">"Spain"</span>, <span class="st">"Portugal"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-190"><a href="#cb7-190" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-06"</span>, <span class="st">"Portugal"</span>, <span class="st">"Spain"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-06"</span>, <span class="st">"Belgium"</span>, <span class="st">"United States"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">4</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-06"</span>, <span class="st">"United States"</span>, <span class="st">"Belgium"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">4</span>L,</span>
+<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-07"</span>, <span class="st">"Argentina"</span>, <span class="st">"Egypt"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">3</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-07"</span>, <span class="st">"Egypt"</span>, <span class="st">"Argentina"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">3</span>L,</span>
+<span id="cb7-195"><a href="#cb7-195" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-07"</span>, <span class="st">"Switzerland"</span>, <span class="st">"Colombia"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">1</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-196"><a href="#cb7-196" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-07"</span>, <span class="st">"Colombia"</span>, <span class="st">"Switzerland"</span>, <span class="st">"round of 16"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">1</span>L, <span class="dv">0</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-09"</span>, <span class="st">"France"</span>, <span class="st">"Morocco"</span>, <span class="st">"quarter-finals"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">0</span>L,</span>
+<span id="cb7-198"><a href="#cb7-198" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-09"</span>, <span class="st">"Morocco"</span>, <span class="st">"France"</span>, <span class="st">"quarter-finals"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">0</span>L, <span class="dv">2</span>L,</span>
+<span id="cb7-199"><a href="#cb7-199" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-10"</span>, <span class="st">"Spain"</span>, <span class="st">"Belgium"</span>, <span class="st">"quarter-finals"</span>, <span class="dv">1</span>L, <span class="st">"win"</span>, <span class="dv">0</span>L, <span class="dv">2</span>L, <span class="dv">1</span>L,</span>
+<span id="cb7-200"><a href="#cb7-200" aria-hidden="true" tabindex="-1"></a>  <span class="dv">2026</span>, <span class="st">"2026-07-10"</span>, <span class="st">"Belgium"</span>, <span class="st">"Spain"</span>, <span class="st">"quarter-finals"</span>, <span class="dv">1</span>L, <span class="st">"lose"</span>, <span class="dv">0</span>L, <span class="dv">1</span>L, <span class="dv">2</span>L</span>
+<span id="cb7-201"><a href="#cb7-201" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">match_date =</span> <span class="fu">ymd</span>(match_date),</span>
+<span id="cb7-202"><a href="#cb7-202" aria-hidden="true" tabindex="-1"></a>             <span class="at">margin     =</span> goals_for <span class="sc">-</span> goals_against)     <span class="co"># negative margin = loss</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># combine historical + 2026 matches</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>matches_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_hist, wc2026) <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(world_cup, match_date, team)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(matches_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 964  11</code></pre>
+</div>
+</div>
+<p>After combining this year’s and historical match datasets, I now have 964 team-match observations to use in my analysis.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(matches_all<span class="sc">$</span>team)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "France"                 "Senegal"                "Cameroon"              
+ [4] "Denmark"                "Germany"                "Republic of Ireland"   
+ [7] "Saudi Arabia"           "Uruguay"                "Argentina"             
+[10] "England"                "Nigeria"                "Paraguay"              
+[13] "Slovenia"               "South Africa"           "Spain"                 
+[16] "Sweden"                 "Brazil"                 "Croatia"               
+[19] "Ecuador"                "Italy"                  "Mexico"                
+[22] "Turkey"                 "Belgium"                "China"                 
+[25] "Costa Rica"             "Japan"                  "Poland"                
+[28] "South Korea"            "Portugal"               "Russia"                
+[31] "Tunisia"                "United States"          "Ivory Coast"           
+[34] "Trinidad and Tobago"    "Angola"                 "Iran"                  
+[37] "Netherlands"            "Serbia and Montenegro"  "Australia"             
+[40] "Czech Republic"         "Ghana"                  "Switzerland"           
+[43] "Togo"                   "Ukraine"                "Greece"                
+[46] "Algeria"                "Serbia"                 "New Zealand"           
+[49] "North Korea"            "Slovakia"               "Chile"                 
+[52] "Honduras"               "Colombia"               "Bosnia and Herzegovina"
+[55] "Egypt"                  "Morocco"                "Iceland"               
+[58] "Peru"                   "Panama"                 "Qatar"                 
+[61] "Wales"                  "Canada"                 "Haiti"                 
+[64] "Scotland"               "Curacao"                "Cape Verde"            
+[67] "Austria"                "Iraq"                   "Jordan"                
+[70] "Norway"                 "DR Congo"               "Uzbekistan"            </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(matches_all<span class="sc">$</span>team))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 72</code></pre>
+</div>
+</div>
+<p>In the full dataset, there are 72 countries represented. However, not all of them have a usable stock market.</p>
+<p>To deal with this, I manually map each country to its main national stock index, keeping only countries whose index has continuous daily data back to 2002. Smaller economies often lack a liquid, long-running index, so this necessarily skews toward developed and larger emerging markets.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># manually map tickers to country names</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># only pick ones that have data going back to 2002</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>tickers <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>team, <span class="sc">~</span>ticker,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"France"</span>,<span class="st">"^FCHI"</span>, <span class="st">"Germany"</span>,<span class="st">"^GDAXI"</span>, <span class="st">"England"</span>,<span class="st">"^FTSE"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Spain"</span>,<span class="st">"^IBEX"</span>, <span class="st">"Italy"</span>,<span class="st">"FTSEMIB.MI"</span>, <span class="st">"Netherlands"</span>,<span class="st">"^AEX"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Belgium"</span>,<span class="st">"^BFX"</span>, <span class="st">"Switzerland"</span>,<span class="st">"^SSMI"</span>, <span class="st">"Sweden"</span>,<span class="st">"^OMX"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Austria"</span>,<span class="st">"^ATX"</span>, <span class="st">"Portugal"</span>,<span class="st">"PSI20.LS"</span>, <span class="st">"Greece"</span>,<span class="st">"^ATG"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Japan"</span>,<span class="st">"^N225"</span>, <span class="st">"South Korea"</span>,<span class="st">"^KS11"</span>, <span class="st">"Australia"</span>,<span class="st">"^AXJO"</span>,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"United States"</span>,<span class="st">"^GSPC"</span>, <span class="st">"Canada"</span>,<span class="st">"^GSPTSE"</span>, <span class="st">"Brazil"</span>,<span class="st">"^BVSP"</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Mexico"</span>,<span class="st">"^MXX"</span>, <span class="st">"China"</span>,<span class="st">"000001.SS"</span>, <span class="st">"Norway"</span>,<span class="st">"^OSEAX"</span>,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"New Zealand"</span>,<span class="st">"^NZ50"</span>, <span class="st">"Poland"</span>,<span class="st">"WIG.WA"</span>, <span class="st">"South Africa"</span>,<span class="st">"^JN0U.JO"</span>,<span class="st">"Chile"</span>,<span class="st">"^IPSA"</span>,</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Republic of Ireland"</span>,<span class="st">"^ISEQ"</span>, <span class="st">"Czech Republic"</span>,<span class="st">"^PX"</span>, <span class="st">"Denmark"</span>,<span class="st">"^OMXC20"</span>,</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Turkey"</span>,<span class="st">"XU100.IS"</span>, <span class="st">"Argentina"</span>,<span class="st">"^MERV"</span>, <span class="st">"Colombia"</span>,<span class="st">"^COLCAP"</span>,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Saudi Arabia"</span>,<span class="st">"^TASI.SR"</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, I download daily prices for each index and convert them to daily log returns. I use returns rather than raw index levels because indices sit at very different absolute values across countries; returns put every market on the same percentage-change scale.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>returns <span class="ot">&lt;-</span> <span class="fu">tq_get</span>(tickers<span class="sc">$</span>ticker,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">from =</span> <span class="st">"2001-11-01"</span>, <span class="at">to =</span> <span class="st">"2026-07-25"</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">get  =</span> <span class="st">"stock.prices"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(date) <span class="sc">%&gt;%</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ret =</span> <span class="fu">log</span>(adjusted <span class="sc">/</span> <span class="fu">lag</span>(adjusted))) <span class="sc">%&gt;%</span> <span class="co"># daily % change</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ret)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tickers, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"symbol"</span> <span class="ot">=</span> <span class="st">"ticker"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(team, symbol, date, ret)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"countries with price data:"</span>, <span class="fu">paste</span>(<span class="fu">sort</span>(<span class="fu">unique</span>(returns<span class="sc">$</span>team)), <span class="at">collapse =</span> <span class="st">", "</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)  <span class="co"># check which countries actually have data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>countries with price data: Argentina, Australia, Austria, Belgium, Brazil, Canada, Chile, China, Denmark, England, France, Germany, Italy, Japan, Mexico, Netherlands, New Zealand, Norway, Portugal, Republic of Ireland, Saudi Arabia, South Africa, South Korea, Spain, Sweden, Switzerland, Turkey, United States </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># teams with useable data</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(returns<span class="sc">$</span>team)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Australia"           "France"              "Germany"            
+ [4] "England"             "Spain"               "Italy"              
+ [7] "Netherlands"         "Belgium"             "Switzerland"        
+[10] "Japan"               "South Korea"         "United States"      
+[13] "Canada"              "Mexico"              "China"              
+[16] "Republic of Ireland" "Turkey"              "Argentina"          
+[19] "Austria"             "Brazil"              "Saudi Arabia"       
+[22] "Chile"               "New Zealand"         "Sweden"             
+[25] "Norway"              "Portugal"            "South Africa"       
+[28] "Denmark"            </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(returns<span class="sc">$</span>team))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 28</code></pre>
+</div>
+</div>
+<p>A few indices failed to download and were dropped, leaving 28 countries with usable return data.</p>
+<p>Now I link each result to the right market day. I assign each win or loss to the first trading day after the match (a Friday-night loss lands on the following Monday), and make treatment flags separately for losses and wins (for easier analysis later).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># map each match to its treated day (first trading day AFTER) </span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># assume effect lands on the next session (a Fri-night loss hits Monday). </span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># NA if that country has no price data</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>next_trading_day <span class="ot">&lt;-</span> <span class="cf">function</span>(tm, mdate) {</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  cand <span class="ot">&lt;-</span> returns<span class="sc">$</span>date[returns<span class="sc">$</span>team <span class="sc">==</span> tm <span class="sc">&amp;</span> returns<span class="sc">$</span>date <span class="sc">&gt;</span> mdate]</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(cand) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="fu">as.Date</span>(<span class="cn">NA</span>))</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">min</span>(cand)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>make_treatment <span class="ot">&lt;-</span> <span class="cf">function</span>(res) { <span class="co"># res = "lose" or "win"</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  matches_all <span class="sc">%&gt;%</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(result <span class="sc">==</span> res, team <span class="sc">%in%</span> tickers<span class="sc">$</span>team) <span class="sc">%&gt;%</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">treat_date =</span> <span class="fu">pmap_vec</span>(<span class="fu">list</span>(team, match_date), next_trading_day)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treat_date)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># if a team has two matches mapping to the same session, keep the worse/bigger</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(team, treat_date) <span class="sc">%&gt;%</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_min</span>(margin, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> <span class="co"># for wins, slice_max is symmetric enough</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">transmute</span>(team, <span class="at">date =</span> treat_date, margin)</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>loss_days <span class="ot">&lt;-</span> <span class="fu">make_treatment</span>(<span class="st">"lose"</span>) <span class="sc">%&gt;%</span> <span class="fu">rename</span>(<span class="at">margin_loss =</span> margin) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">post_loss =</span> <span class="dv">1</span>L)</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>win_days  <span class="ot">&lt;-</span> <span class="fu">make_treatment</span>(<span class="st">"win"</span>)  <span class="sc">%&gt;%</span> <span class="fu">rename</span>(<span class="at">margin_win  =</span> margin) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">post_win  =</span> <span class="dv">1</span>L)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>After, I merge the treatment flags onto a panel of every country’s daily returns to get a country–day panel: one row per country per trading day, marked for whether its team had just won or lost, with the goal margin added as well.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># assemble the country-day panel</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>panel <span class="ot">&lt;-</span> returns <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(loss_days, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"team"</span>, <span class="st">"date"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(win_days,  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"team"</span>, <span class="st">"date"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">post_loss   =</span> <span class="fu">coalesce</span>(post_loss, <span class="dv">0</span>L),</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">post_win    =</span> <span class="fu">coalesce</span>(post_win, <span class="dv">0</span>L),</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">margin_loss =</span> <span class="fu">coalesce</span>(margin_loss, <span class="dv">0</span>), <span class="co"># 0 off-treatment, so it</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">margin_win  =</span> <span class="fu">coalesce</span>(margin_win, <span class="dv">0</span>)) <span class="co"># doubles as the interaction</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(panel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 8
+  team      symbol date            ret margin_loss post_loss margin_win post_win
+  &lt;chr&gt;     &lt;chr&gt;  &lt;date&gt;        &lt;dbl&gt;       &lt;dbl&gt;     &lt;int&gt;      &lt;dbl&gt;    &lt;int&gt;
+1 Australia ^AXJO  2001-11-01 -2.74e-3           0         0          0        0
+2 France    ^FCHI  2001-11-02  5.63e-4           0         0          0        0
+3 Germany   ^GDAXI 2001-11-02 -1.15e-2           0         0          0        0
+4 England   ^FTSE  2001-11-02  1.14e-2           0         0          0        0
+5 Spain     ^IBEX  2001-11-02 -1.00e-2           0         0          0        0
+6 Italy     FTSEM… 2001-11-02 -3.76e-3           0         0          0        0</code></pre>
+</div>
+</div>
+<p>My dataset for analysis is complete! But before analysing, I check the panel is internally consistent: I need to confirm that every loss has a non-positive margin and every win a non-negative one. I also take a raw look at average returns on loss days versus other days. (This raw gap ignores global market movements, so it isn’t the result, but it gives me a general idea of what’s to come).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>panel <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">country_days =</span> <span class="fu">n</span>(),</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">countries    =</span> <span class="fu">n_distinct</span>(team),</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">n_loss_days  =</span> <span class="fu">sum</span>(post_loss),</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">n_win_days   =</span> <span class="fu">sum</span>(post_win)) <span class="sc">%&gt;%</span> <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 4
+  country_days countries n_loss_days n_win_days
+         &lt;int&gt;     &lt;int&gt;       &lt;int&gt;      &lt;int&gt;
+1       150889        28         173        273</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># margins must have the right sign (shootout games are 0, hence &lt;=/&gt;=)</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">all</span>(panel<span class="sc">$</span>margin_loss[panel<span class="sc">$</span>post_loss <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">&lt;=</span> <span class="dv">0</span>)) <span class="co"># losses, never positive</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">all</span>(panel<span class="sc">$</span>margin_win[ panel<span class="sc">$</span>post_win  <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">&gt;=</span> <span class="dv">0</span>)) <span class="co"># wins, never negative</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"sign checks passed: loss margins &lt;= 0, win margins &gt;= 0</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sign checks passed: loss margins &lt;= 0, win margins &gt;= 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># peek at avg returns</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>panel <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(post_loss) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean_ret =</span> <span class="fu">mean</span>(ret), <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 3
+  post_loss  mean_ret      n
+      &lt;int&gt;     &lt;dbl&gt;  &lt;int&gt;
+1         0  0.000300 150716
+2         1 -0.00242     173</code></pre>
+</div>
+</div>
+<p>Overall the data looks good. The panel has 150889 country-days across 28 countries, with 173 losses and 273 wins falling on trading days. The sign checks pass. Time to move onto analysis!</p>
+</section>
+<section id="modeling" class="level1">
+<h1>Modeling</h1>
+<p>To answer each of my three questions, I run a two-way fixed effects regression to estimate the effect of match results on next-day stock returns.</p>
+<p>In each, a country fixed effect removes each market’s baseline, and a date fixed effect absorbs whatever moved all markets that day, so the remaining coefficient captures the effect specific to just having won or lost. Standard errors are clustered by country.</p>
+<p>I run four models that map onto my three questions:</p>
+<ul>
+<li><code>m_loss</code> estimates the effect of a loss (Q1)</li>
+<li><code>m_win</code> the effect of a win (Q2)</li>
+<li>the two margin models ask whether the size of the result matters (Q3) by adding the goal margin, letting the effect scale with how large the win or loss was.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># date FE = the same-day control group</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"># team FE = each market's baseline.</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># margin_* is 0 for untreated, so it enters as the treatment-response slope.</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>m_loss     <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> post_loss                <span class="sc">|</span> team <span class="sc">+</span> date, panel, <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>m_win      <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> post_win                 <span class="sc">|</span> team <span class="sc">+</span> date, panel, <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>m_loss_mrg <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> post_loss <span class="sc">+</span> margin_loss  <span class="sc">|</span> team <span class="sc">+</span> date, panel, <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>m_win_mrg  <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> post_win  <span class="sc">+</span> margin_win   <span class="sc">|</span> team <span class="sc">+</span> date, panel, <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(m_loss, m_win, m_loss_mrg, m_win_mrg,</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">headers =</span> <span class="fu">c</span>(<span class="st">"Q1 loss"</span>, <span class="st">"Q2 win"</span>, <span class="st">"Q3 loss x margin"</span>, <span class="st">"Q3 win x margin"</span>),</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">digits =</span> <span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                          m_loss            m_win       m_loss_mrg
+                         Q1 loss           Q2 win Q3 loss x margin
+Dependent Var.:              ret              ret              ret
+                                                                  
+post_loss       -0.0009 (0.0011)                  -0.0026 (0.0020)
+post_win                         -0.0004 (0.0007)                 
+margin_loss                                       -0.0010 (0.0009)
+margin_win                                                        
+Fixed-Effects:  ---------------- ---------------- ----------------
+team                         Yes              Yes              Yes
+date                         Yes              Yes              Yes
+_______________ ________________ ________________ ________________
+S.E.: Clustered         by: team         by: team         by: team
+Observations             150,366          150,366          150,366
+R2                       0.43244          0.43243          0.43245
+Within R2                8.33e-6          2.35e-6          2.46e-5
+
+                       m_win_mrg
+                 Q3 win x margin
+Dependent Var.:              ret
+                                
+post_loss                       
+post_win        -0.0005 (0.0010)
+margin_loss                     
+margin_win      3.08e-5 (0.0003)
+Fixed-Effects:  ----------------
+team                         Yes
+date                         Yes
+_______________ ________________
+S.E.: Clustered         by: team
+Observations             150,366
+R2                       0.43243
+Within R2                2.38e-6
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The effect of a loss (Q1) is about −0.09%: negative, as the sentiment hypothesis predicts, but not statistically significant.</p>
+<p>The effect of a win (Q2) is essentially zero, consistent with the well-documented asymmetry that losses weigh on mood more than wins.</p>
+<p>Neither margin term (Q3) is significant, and the loss-margin coefficient, if anything, runs opposite to the sentiment prediction, so I find no evidence that larger results move the market more.</p>
+<p>Across all four models the within-R2 is near zero, meaning match results explain almost none of the day-to-day variation in returns.</p>
+</section>
+<section id="robustness-checks" class="level1">
+<h1>Robustness Checks</h1>
+<p>Having estimated the main effects, I test whether they hold under alternative samples and specifications. My aim is not to search for significance, but to confirm the null result is robust and not an artefact of particular choices.</p>
+<p>Group-stage matches, especially those where a team has already qualified or been eliminated, carry little emotional weight, which could dilute any effect. So I first restrict the loss indicator to knockout-stage matches, the highest-stakes and most emotionally charged games, where a sentiment effect should be strongest if it exists.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># knockout-only loss flag: 1 only on the day after a KNOCKOUT loss</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>loss_days_ko <span class="ot">&lt;-</span> matches_all <span class="sc">%&gt;%</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(result <span class="sc">==</span> <span class="st">"lose"</span>, team <span class="sc">%in%</span> tickers<span class="sc">$</span>team, knockout <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">treat_date =</span> <span class="fu">pmap_vec</span>(<span class="fu">list</span>(team, match_date), next_trading_day)) <span class="sc">%&gt;%</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treat_date)) <span class="sc">%&gt;%</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(team, treat_date) <span class="sc">%&gt;%</span> <span class="fu">slice_min</span>(margin, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(team, <span class="at">date =</span> treat_date, <span class="at">post_loss_ko =</span> <span class="dv">1</span>L)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>panel <span class="ot">&lt;-</span> panel <span class="sc">%&gt;%</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">any_of</span>(<span class="st">"post_loss_ko"</span>)) <span class="sc">%&gt;%</span>  <span class="co"># remove any leftover from a prior run</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(loss_days_ko, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"team"</span>,<span class="st">"date"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">post_loss_ko =</span> <span class="fu">coalesce</span>(post_loss_ko, <span class="dv">0</span>L))</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>m_loss_ko <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> post_loss_ko <span class="sc">|</span> team <span class="sc">+</span> date, panel, <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_loss_ko)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OLS estimation, Dep. Var.: ret
+Observations: 150,366
+Fixed-effects: team: 27,  date: 7,105
+Standard-errors: Clustered (team) 
+              Estimate Std. Error  t value Pr(&gt;|t|) 
+post_loss_ko -0.001492    0.00129 -1.15663  0.25794 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.010264     Adj. R2: 0.404181
+                 Within R2: 1.007e-5</code></pre>
+</div>
+</div>
+<p>The knockout-only estimate is about −0.15%, larger in magnitude than the all-losses effect of −0.09%, the direction the sentiment story predicts, since higher-stakes matches should provoke a stronger reaction. But with far fewer treated days the estimate is noisier, and it remains statistically insignificant (p ~ 0.26).</p>
+<p>Next, since Argentina and Turkey experienced high inflation over this period, which makes their nominal stock returns extremely volatile, I re-estimate the main model excluding them, to check if these noisy markets are distorting the result or not.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>m_loss_noAT <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> post_loss <span class="sc">|</span> team <span class="sc">+</span> date,</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>                     panel <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span>team <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Argentina"</span>,<span class="st">"Turkey"</span>)),</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_loss_noAT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OLS estimation, Dep. Var.: ret
+Observations: 138,360
+Fixed-effects: team: 25,  date: 7,105
+Standard-errors: Clustered (team) 
+           Estimate Std. Error   t value Pr(&gt;|t|) 
+post_loss -0.000664   0.000761 -0.872839   0.3914 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.009144     Adj. R2: 0.458055
+                 Within R2: 5.515e-6</code></pre>
+</div>
+</div>
+<p>Excluding the two inflation-distorted markets leaves the loss effect still small, negative, and insignificant–if anything slightly closer to zero. The conclusion is unchanged, so these markets are not driving the result.</p>
+<section id="identification-parallel-trends" class="level2">
+<h2 class="anchored" data-anchor-id="identification-parallel-trends">Identification: Parallel Trends</h2>
+<p>Finally, I test the assumptions the DiD design rests on. I estimate the event-study version of the main model, the same two-way fixed-effects regression, but with the single loss indicator split into separate indicators for each trading day around the loss (three days before to three days after, with the day before the loss as the omitted reference). This lets me trace the effect over time and check whether the design is valid.</p>
+<p>If my design is sound, the coefficients for the days before the loss should be flat and near zero, showing the losing country’s market was behaving normally, with no divergence or reaction, until the match was actually played.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>win  <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">3</span><span class="sc">:</span><span class="dv">3</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>ctrl <span class="ot">&lt;-</span> <span class="dv">99</span>L   <span class="co"># code for normal days = the reference</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co"># trading-day calendar per team</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>cal <span class="ot">&lt;-</span> returns <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(team, date) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(team, date) <span class="sc">%&gt;%</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(team) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">pos =</span> <span class="fu">row_number</span>()) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>()</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="co"># find each loss's reaction day</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>loss_pos <span class="ot">&lt;-</span> matches_all <span class="sc">%&gt;%</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(result <span class="sc">==</span> <span class="st">"lose"</span>, team <span class="sc">%in%</span> tickers<span class="sc">$</span>team) <span class="sc">%&gt;%</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">treat_date =</span> <span class="fu">pmap_vec</span>(<span class="fu">list</span>(team, match_date), next_trading_day)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treat_date)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(team, treat_date) <span class="sc">%&gt;%</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(cal, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"team"</span>, <span class="st">"treat_date"</span> <span class="ot">=</span> <span class="st">"date"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(team, <span class="at">treat_pos =</span> pos)</span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a><span class="co"># get the 3 days before and after each loss</span></span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>ev <span class="ot">&lt;-</span> loss_pos <span class="sc">%&gt;%</span></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">crossing</span>(<span class="at">k =</span> win) <span class="sc">%&gt;%</span></span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">target_pos =</span> treat_pos <span class="sc">+</span> k) <span class="sc">%&gt;%</span></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(cal, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"team"</span>, <span class="st">"target_pos"</span> <span class="ot">=</span> <span class="st">"pos"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(date)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(team, date) <span class="sc">%&gt;%</span> <span class="fu">slice_min</span>(<span class="fu">abs</span>(k), <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">select</span>(team, date, k)</span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a>panel_es <span class="ot">&lt;-</span> panel <span class="sc">%&gt;%</span></span>
+<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(ev, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"team"</span>, <span class="st">"date"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">event_time =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(k), <span class="sc">-</span><span class="dv">1</span>L, k))</span>
+<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a><span class="co"># event-study regression</span></span>
+<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a>m_es <span class="ot">&lt;-</span> <span class="fu">feols</span>(ret <span class="sc">~</span> <span class="fu">i</span>(event_time, <span class="at">ref =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">|</span> team <span class="sc">+</span> date,</span>
+<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a>              panel_es, <span class="at">cluster =</span> <span class="sc">~</span>team)</span>
+<span id="cb37-34"><a href="#cb37-34" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(m_es)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                            m_es
+Dependent Var.:              ret
+                                
+event_time = -3 -0.0006 (0.0008)
+event_time = -2  0.0009 (0.0016)
+event_time = 0  -0.0009 (0.0011)
+event_time = 1   0.0007 (0.0008)
+event_time = 2  -0.0009 (0.0012)
+event_time = 3  6.28e-5 (0.0013)
+Fixed-Effects:  ----------------
+team                         Yes
+date                         Yes
+_______________ ________________
+S.E.: Clustered         by: team
+Observations             150,366
+R2                       0.43245
+Within R2                2.84e-5
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pull coefficients + CIs, add the reference point at -1 = 0</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">confint</span>(m_es)); <span class="fu">names</span>(ci) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"lo"</span>,<span class="st">"hi"</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>es <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">term =</span> <span class="fu">rownames</span>(ci), <span class="at">est =</span> <span class="fu">coef</span>(m_es), <span class="at">lo =</span> ci<span class="sc">$</span>lo, <span class="at">hi =</span> ci<span class="sc">$</span>hi) <span class="sc">%&gt;%</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">k =</span> <span class="fu">as.integer</span>(<span class="fu">str_remove</span>(term, <span class="st">"event_time::"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(k)) <span class="sc">%&gt;%</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">tibble</span>(<span class="at">k =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">est =</span> <span class="dv">0</span>, <span class="at">lo =</span> <span class="dv">0</span>, <span class="at">hi =</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span>   <span class="co"># reference point</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(k)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="co"># plot effect by event time</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(es, <span class="fu">aes</span>(k, est)) <span class="sc">+</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> lo, <span class="at">ymax =</span> hi), <span class="at">color =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="sc">-</span><span class="dv">3</span><span class="sc">:</span><span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Event Time"</span>, <span class="at">y =</span> <span class="st">"Treatment Effect on Daily Return"</span>,</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"National Stock Returns Around a World Cup Loss"</span>) <span class="sc">+</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The event-study estimates provide the key diagnostic for the design. The pre-loss coefficients (event times −3 and −2) are small and statistically indistinguishable from zero, indicating that losing countries’ markets were neither already diverging nor reacting in advance of the match–support for both the parallel-trends and no-anticipation assumptions. On the day after the loss (event time 0) the estimate is −0.09%, matching the main regression, but its confidence interval includes zero; the subsequent days hover around zero with no clear pattern.</p>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<section id="interpretation" class="level2">
+<h2 class="anchored" data-anchor-id="interpretation">Interpretation</h2>
+<p>Across all three research questions, I find no statistically significant effect of World Cup results on national stock returns.</p>
+<p>The estimated effect of a loss (Q1) is about −0.09%: negative, in the direction the sentiment hypothesis predicts, but not distinguishable from zero. The effect of a win (Q2) is essentially zero, consistent with the well-documented asymmetry in which losses weigh on investor mood more than wins. For Q3, neither margin term is significant, so I find no evidence that the size of a result matters. Restricting to knockout-stage losses, the highest-stakes matches, produces a somewhat larger estimate (about −0.15%), which is again in the predicted direction but remains insignificant. Similarly, removing countries with high inflation over the data’s time period (Argentina and Turkey), leaves the loss effect still small, negative, and insignificant.</p>
+<p>Two things reinforce that this null is a genuine result rather than a failure of the design. First, the event-study estimates show no significant pre-trends: in the days before a loss, markets were neither diverging nor reacting, supporting the assumptions the design relies on. Second, the within-R2 across every model is on the order of <span class="math inline">\(10^{-5}\)</span>, meaning match results explain almost none of the day-to-day variation in returns. The point estimates behave exactly as the sentiment story would predict (negative for losses, larger for bigger matches, absent for wins), but they are consistently too small and too noisy to separate from zero.</p>
+<p>Taken together, my results are most consistent with national equity markets being largely efficient with respect to public sporting information. A World Cup result is public, emotionally charged, and widely watched, yet it does not systematically move a country’s stock market the next day. If a sentiment effect exists, it is small enough that a study of this size cannot detect it. In contrast to Edmans et al.&nbsp;(2007), who find a significant decline around World Cup elimination, I detect no significant effect when pooling all match results across this broader, more recent sample, suggesting the effect may be concentrated in elimination games, or has weakened over time.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>Several limitations qualify these conclusions. Most importantly, my analysis rests on a relatively small number of treated events–173 losses across the sample–which limits statistical power and means a small true effect could easily go undetected. The consistently correct sign of the point estimates leaves open the possibility that a genuine effect could exist, one that a larger sample might identify.</p>
+<p>The sample is also selected. I can only include countries with a liquid stock index going back to 2002 (28 countries out of the 72 represented in the full dataset), which skews the panel toward developed and larger emerging economies. Countries where football is most culturally central, and where a sentiment effect might be strongest, are often precisely those without a suitable index, so my sample may understate the true effect.</p>
+<p>My timing rule assigns each result to the next trading day, which may misdate the reaction for matches that end while the home market is still open. A more precise design would use exact kickoff times relative to each market’s trading hours.</p>
+<p>There are also measurement limitations. My margin variable captures the severity of a result but not its surprise: a heavy defeat against a weak opponent may be fully expected and carry little emotional weight, while a narrow loss to a favourite may be a shock. Since investor mood likely responds to surprise more than score, goal margin is an imperfect proxy, and this may be why the margin results are weak. A better measure would use pre-match betting odds to isolate the unexpected component of each result. Also, I only examine the single trading day after a match; a reaction that is delayed, or that reverses over several days, is not fully captured by this window.</p>
+<p>None of these issues undermines my core findings, but each suggests that the absence of a detectable effect should be read as “too small to measure in this sample,” rather than definitive proof that no effect exists.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<p>Edmans, A., García, D., &amp; Norli, Ø. (2007). Sports Sentiment and Stock Returns. <em>Journal of Finance, 62</em>(4), 1967–1998. <a href="https://doi.org/10.1111/j.1540-6261.2007.01262.x" class="uri">https://doi.org/10.1111/j.1540-6261.2007.01262.x</a></p>
+<p>Fjelstul, J. C. (2023). <em>The Fjelstul World Cup Database</em> [Data set]. GitHub. <a href="https://github.com/jfjelstul/worldcup" class="uri">https://github.com/jfjelstul/worldcup</a></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/calebjwilliams\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

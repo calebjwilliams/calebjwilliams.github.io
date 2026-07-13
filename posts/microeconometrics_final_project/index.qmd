@@ -1,0 +1,640 @@
+---
+title: "World Cup Results and Stock Market Returns: A Difference-in-Differences Study"
+author: "Caleb Williams"
+date: "2026-7-14"
+categories: [code, R, Project]
+execute:
+  echo: true
+  message: false
+  warning: false
+format:
+  html:
+    toc: true
+    code-fold: false
+    link-external-icon: false 
+    link-external-newwindow: true
+---
+
+# Introduction
+
+This post is a walkthrough of my final project for Prof. Arikawa's *Microeconometrics* course at Waseda Business School.
+
+## Question and Motivation
+
+Soccer ("football") is the most popular sport in the world, both by players and viewers, and the FIFA World Cup is the largest, most viewed sporting event, held every 4 years.
+
+This year's tournament, which is the largest ever in its history, brought together teams representing 48 different countries, and has seen historic viewership, with wins and losses of teams bringing hype and discourse among fans and non-fans alike.
+
+I wanted to see if a teams' loss in the World Cup had further reaching implications, specifically, whether or not a loss or win has an effect on that country's stock market performance.
+
+My research question has 3 parts:
+
+1.  Does a country losing a World Cup match affect its stock market?
+2.  Does a country winning affect its stock market?
+3.  Does the size of the result matter--do bigger wins/losses move the market more?
+
+This question is motivated by the idea that investor sentiment--the collective mood of market participants--can influence financial markets, even when that mood has nothing to do with economic fundamentals. Under this "sentiment hypothesis," a shared emotional shock like a national team's defeat could depress a country's stock market the next day, whereas the competing view of market efficiency holds that prices reflect only fundamentals and should be unmoved by a football result. Prior work supports the former: Edmans, García and Norli (2007) find that national stock markets tend to fall after their team is eliminated from the World Cup.
+
+This project revisits that finding. Rather than focusing on elimination alone, I examine the effect of all match results (wins, losses, and draws) across a more recent set of tournaments (2002 - 2026), using a two-way fixed-effects difference-in-differences design. In doing so I test whether the sentiment effect documented by Edmans et al. generalises beyond elimination games and persists in this period.
+
+## Methodology
+
+The challenge in answering these questions is separating the effect of a match result from everything else moving a stock market on a given day. If I simply looked at a country's market before and after a loss, I couldn't tell whether any change was caused by the loss, or by a completely unrelated cause--a global market swing, an interest-rate announcement, an oil price move--that would have happened regardless.
+
+My strategy is to compare the market of a country that just lost against the markets of every other country on that same day. My assumption is that those other countries faced the same global conditions but did not just lose a match, so they show me what the losing country's market "would have done" absent the result. The difference between them is what I attribute to the match.
+
+To be specific, this comparison is a **difference-in-differences (DiD)** design, implemented as a **two-way fixed effects (TWFE)** regression. The two differences are handled by two sets of fixed effects:
+
+- a **country fixed effect** removes each market's own baseline--some markets are simply more volatile or trend differently, and I don't want those differences contaminating the comparison
+
+- a **date fixed effect** removes whatever happened to *all* markets on a given day. This is my control group: it absorbs global shocks common to every country, so that a worldwide trend is accounted for
+
+After removing each country's baseline and common movement, what remains should be just the effect specific to having just won/lost.
+
+### The Model
+
+For each research question I will estimate: $$return_{i,t} = \eta_i + \theta_t + \beta_{treat}D_{i,t} + \epsilon_{i,t}$$
+
+where:
+
+- $return_{i,t}$ = the daily stock-index return of country $i$ on day $t$
+- $\eta_i$ = country fixed effect
+- $\theta_t$ = date fixed effect
+- $D_{i,t}$ = treatment indicator equal to 1 on first trading day after country $i$'s team lost/won, and 0 otherwise
+- $\beta_{treat}$ = the average effect of a match win/loss on next-day returns
+
+A given country's daily returns are correlated over time, so I cluster standard errors by country. This avoids treating correlated observations as independent, which would understate the true uncertainty and overstate significance.
+
+I assign each result to the **next** trading day after the match. Because most matches finish outside or near the end of the relevant market's trading hours, the next session is when a reaction would typically first appear. This is an approximation, exact kickoff times and time-zone differences mean a market could occasionally still be open when a match ends, but it is a reasonable and consistent rule across all matches.
+
+For Question 3, I add the goal margin, the difference in goals scored and goals allowed (signed so that a loss is negative), interacted with the treatment, letting the effect scale with how large the win or loss was.
+
+### Identifying Assumptions
+
+DiD relies on two assumptions. The first is **no anticipation**: the result has no effect on the market before the match is played. The second is **parallel trends**: absent the match result, the treated country's market would have moved in line with the others.
+
+No anticipation is especially credible in this setting. Unlike an announced policy change, a World Cup result is genuinely unknown until the match is played, meaning markets cannot price in a win or loss that has not yet occurred. The pre-match period therefore reflects untreated behaviour by construction.
+
+I can't directly test parallel trends, but I can assess it with an **event-study version** of the same regression, which estimates the effect separately for each day around the match. If the coefficients for the days before the result are small and statistically indistinguishable from zero, that supports the parallel-trends assumption--nothing was diverging before the match and is also consistent with no anticipation, since it shows no reaction before the result was known. This leaves the post-match movement as the plausible effect.
+
+# Preparing the Dataset
+
+```{r}
+if (!requireNamespace("worldcup", quietly = TRUE))
+  remotes::install_github("jfjelstul/worldcup") # database for matches
+
+library(worldcup)
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(tidyr)
+library(purrr)
+library(tidyquant)
+library(fixest)
+library(ggplot2)
+
+set.seed(67) # for reproducibility
+```
+
+I use the `worldcup` package for match data, `tidyquant` to pull stock prices, and `fixest` to run the fixed-effects models.
+
+Match data comes from the Fjelstul World Cup Database (Fjelstul, 2023), accessed via the worldcup package. Its team_appearances table has one row per team per match, so each game appears twice, once from each team's side.
+
+I keep men's tournaments from 2002 onward, since reliable daily stock data for most countries doesn't extend earlier. I also record each result's goal margin, signed so that a loss is negative.
+
+```{r}
+# get team appearances data from worldcup package
+
+ta <- worldcup::team_appearances
+
+results_hist <- ta %>%
+  filter(str_detect(tournament_name, "Men's"),
+         as.integer(str_sub(tournament_name, 1, 4)) >= 2002) %>% 
+  transmute(
+    world_cup = as.integer(str_sub(tournament_name, 1, 4)),
+    match_date = ymd(match_date),
+    team = team_name,
+    opponent = opponent_name,
+    stage = stage_name,
+    knockout = as.integer(knockout_stage),
+    result = result, # win/lose/draw
+    penalty_shootout = as.integer(penalty_shootout),
+    goals_for = goals_for,
+    goals_against = goals_against,
+    margin = goals_for - goals_against, # negative for a loss
+  ) %>% 
+  arrange(world_cup, match_date, team)
+```
+
+```{r}
+dim(results_hist)
+head(results_hist)
+```
+
+So from historical matches (2002 - 2022), I have 768 team-match observations.
+
+I want to include this year's World Cup match results so far, but since Fjelstul's database doesn't include those yet, I have to add those manually (taking from wikipedia/FIFA's Official website):
+
+```{r}
+# manually adding this year's world cup matches (so far)
+
+wc2026 <- tribble(
+  ~world_cup, ~match_date, ~team, ~opponent, ~stage, ~knockout, ~result, ~penalty_shootout, ~goals_for, ~goals_against,
+  2026, "2026-06-11", "Mexico", "South Africa", "group stage", 0L, "win", 0L, 2L, 0L,
+  2026, "2026-06-11", "South Africa", "Mexico", "group stage", 0L, "lose", 0L, 0L, 2L,
+  2026, "2026-06-11", "South Korea", "Czech Republic", "group stage", 0L, "win", 0L, 2L, 1L,
+  2026, "2026-06-11", "Czech Republic", "South Korea", "group stage", 0L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-12", "Canada", "Bosnia and Herzegovina", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-12", "Bosnia and Herzegovina", "Canada", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-12", "United States", "Paraguay", "group stage", 0L, "win", 0L, 4L, 1L,
+  2026, "2026-06-12", "Paraguay", "United States", "group stage", 0L, "lose", 0L, 1L, 4L,
+  2026, "2026-06-13", "Qatar", "Switzerland", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-13", "Switzerland", "Qatar", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-13", "Brazil", "Morocco", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-13", "Morocco", "Brazil", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-13", "Haiti", "Scotland", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-13", "Scotland", "Haiti", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-13", "Australia", "Turkey", "group stage", 0L, "win", 0L, 2L, 0L,
+  2026, "2026-06-13", "Turkey", "Australia", "group stage", 0L, "lose", 0L, 0L, 2L,
+  2026, "2026-06-14", "Germany", "Curacao", "group stage", 0L, "win", 0L, 7L, 1L,
+  2026, "2026-06-14", "Curacao", "Germany", "group stage", 0L, "lose", 0L, 1L, 7L,
+  2026, "2026-06-14", "Ivory Coast", "Ecuador", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-14", "Ecuador", "Ivory Coast", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-14", "Netherlands", "Japan", "group stage", 0L, "draw", 0L, 2L, 2L,
+  2026, "2026-06-14", "Japan", "Netherlands", "group stage", 0L, "draw", 0L, 2L, 2L,
+  2026, "2026-06-14", "Sweden", "Tunisia", "group stage", 0L, "win", 0L, 5L, 1L,
+  2026, "2026-06-14", "Tunisia", "Sweden", "group stage", 0L, "lose", 0L, 1L, 5L,
+  2026, "2026-06-15", "Belgium", "Egypt", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-15", "Egypt", "Belgium", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-15", "Iran", "New Zealand", "group stage", 0L, "draw", 0L, 2L, 2L,
+  2026, "2026-06-15", "New Zealand", "Iran", "group stage", 0L, "draw", 0L, 2L, 2L,
+  2026, "2026-06-15", "Spain", "Cape Verde", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-15", "Cape Verde", "Spain", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-15", "Saudi Arabia", "Uruguay", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-15", "Uruguay", "Saudi Arabia", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-16", "France", "Senegal", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-16", "Senegal", "France", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-16", "Iraq", "Norway", "group stage", 0L, "lose", 0L, 1L, 4L,
+  2026, "2026-06-16", "Norway", "Iraq", "group stage", 0L, "win", 0L, 4L, 1L,
+  2026, "2026-06-16", "Argentina", "Algeria", "group stage", 0L, "win", 0L, 3L, 0L,
+  2026, "2026-06-16", "Algeria", "Argentina", "group stage", 0L, "lose", 0L, 0L, 3L,
+  2026, "2026-06-16", "Austria", "Jordan", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-16", "Jordan", "Austria", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-17", "Portugal", "DR Congo", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-17", "DR Congo", "Portugal", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-17", "Uzbekistan", "Colombia", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-17", "Colombia", "Uzbekistan", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-17", "England", "Croatia", "group stage", 0L, "win", 0L, 4L, 2L,
+  2026, "2026-06-17", "Croatia", "England", "group stage", 0L, "lose", 0L, 2L, 4L,
+  2026, "2026-06-17", "Ghana", "Panama", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-17", "Panama", "Ghana", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-18", "Czech Republic", "South Africa", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-18", "South Africa", "Czech Republic", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-18", "Mexico", "South Korea", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-18", "South Korea", "Mexico", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-18", "Switzerland", "Bosnia and Herzegovina", "group stage", 0L, "win", 0L, 4L, 1L,
+  2026, "2026-06-18", "Bosnia and Herzegovina", "Switzerland", "group stage", 0L, "lose", 0L, 1L, 4L,
+  2026, "2026-06-18", "Canada", "Qatar", "group stage", 0L, "win", 0L, 6L, 0L,
+  2026, "2026-06-18", "Qatar", "Canada", "group stage", 0L, "lose", 0L, 0L, 6L,
+  2026, "2026-06-19", "Scotland", "Morocco", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-19", "Morocco", "Scotland", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-19", "Brazil", "Haiti", "group stage", 0L, "win", 0L, 3L, 0L,
+  2026, "2026-06-19", "Haiti", "Brazil", "group stage", 0L, "lose", 0L, 0L, 3L,
+  2026, "2026-06-19", "United States", "Australia", "group stage", 0L, "win", 0L, 2L, 0L,
+  2026, "2026-06-19", "Australia", "United States", "group stage", 0L, "lose", 0L, 0L, 2L,
+  2026, "2026-06-19", "Turkey", "Paraguay", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-19", "Paraguay", "Turkey", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-20", "Germany", "Ivory Coast", "group stage", 0L, "win", 0L, 2L, 1L,
+  2026, "2026-06-20", "Ivory Coast", "Germany", "group stage", 0L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-20", "Ecuador", "Curacao", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-20", "Curacao", "Ecuador", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-20", "Netherlands", "Sweden", "group stage", 0L, "win", 0L, 5L, 1L,
+  2026, "2026-06-20", "Sweden", "Netherlands", "group stage", 0L, "lose", 0L, 1L, 5L,
+  2026, "2026-06-20", "Tunisia", "Japan", "group stage", 0L, "lose", 0L, 0L, 4L,
+  2026, "2026-06-20", "Japan", "Tunisia", "group stage", 0L, "win", 0L, 4L, 0L,
+  2026, "2026-06-21", "Belgium", "Iran", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-21", "Iran", "Belgium", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-21", "New Zealand", "Egypt", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-21", "Egypt", "New Zealand", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-21", "Spain", "Saudi Arabia", "group stage", 0L, "win", 0L, 4L, 0L,
+  2026, "2026-06-21", "Saudi Arabia", "Spain", "group stage", 0L, "lose", 0L, 0L, 4L,
+  2026, "2026-06-21", "Uruguay", "Cape Verde", "group stage", 0L, "draw", 0L, 2L, 2L,
+  2026, "2026-06-21", "Cape Verde", "Uruguay", "group stage", 0L, "draw", 0L, 2L, 2L,
+  2026, "2026-06-22", "France", "Iraq", "group stage", 0L, "win", 0L, 3L, 0L,
+  2026, "2026-06-22", "Iraq", "France", "group stage", 0L, "lose", 0L, 0L, 3L,
+  2026, "2026-06-22", "Norway", "Senegal", "group stage", 0L, "win", 0L, 3L, 2L,
+  2026, "2026-06-22", "Senegal", "Norway", "group stage", 0L, "lose", 0L, 2L, 3L,
+  2026, "2026-06-22", "Argentina", "Austria", "group stage", 0L, "win", 0L, 2L, 0L,
+  2026, "2026-06-22", "Austria", "Argentina", "group stage", 0L, "lose", 0L, 0L, 2L,
+  2026, "2026-06-22", "Jordan", "Algeria", "group stage", 0L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-22", "Algeria", "Jordan", "group stage", 0L, "win", 0L, 2L, 1L,
+  2026, "2026-06-23", "Portugal", "Uzbekistan", "group stage", 0L, "win", 0L, 5L, 0L,
+  2026, "2026-06-23", "Uzbekistan", "Portugal", "group stage", 0L, "lose", 0L, 0L, 5L,
+  2026, "2026-06-23", "Colombia", "DR Congo", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-23", "DR Congo", "Colombia", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-23", "England", "Ghana", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-23", "Ghana", "England", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-23", "Panama", "Croatia", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-23", "Croatia", "Panama", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-24", "Czech Republic", "Mexico", "group stage", 0L, "lose", 0L, 0L, 3L,
+  2026, "2026-06-24", "Mexico", "Czech Republic", "group stage", 0L, "win", 0L, 3L, 0L,
+  2026, "2026-06-24", "South Africa", "South Korea", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-24", "South Korea", "South Africa", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-24", "Switzerland", "Canada", "group stage", 0L, "win", 0L, 2L, 1L,
+  2026, "2026-06-24", "Canada", "Switzerland", "group stage", 0L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-24", "Bosnia and Herzegovina", "Qatar", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-24", "Qatar", "Bosnia and Herzegovina", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-24", "Scotland", "Brazil", "group stage", 0L, "lose", 0L, 0L, 3L,
+  2026, "2026-06-24", "Brazil", "Scotland", "group stage", 0L, "win", 0L, 3L, 0L,
+  2026, "2026-06-24", "Morocco", "Haiti", "group stage", 0L, "win", 0L, 4L, 2L,
+  2026, "2026-06-24", "Haiti", "Morocco", "group stage", 0L, "lose", 0L, 2L, 4L,
+  2026, "2026-06-25", "Turkey", "United States", "group stage", 0L, "win", 0L, 3L, 2L,
+  2026, "2026-06-25", "United States", "Turkey", "group stage", 0L, "lose", 0L, 2L, 3L,
+  2026, "2026-06-25", "Paraguay", "Australia", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-25", "Australia", "Paraguay", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-25", "Curacao", "Ivory Coast", "group stage", 0L, "lose", 0L, 0L, 2L,
+  2026, "2026-06-25", "Ivory Coast", "Curacao", "group stage", 0L, "win", 0L, 2L, 0L,
+  2026, "2026-06-25", "Ecuador", "Germany", "group stage", 0L, "win", 0L, 2L, 1L,
+  2026, "2026-06-25", "Germany", "Ecuador", "group stage", 0L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-25", "Japan", "Sweden", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-25", "Sweden", "Japan", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-25", "Tunisia", "Netherlands", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-25", "Netherlands", "Tunisia", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-26", "Egypt", "Iran", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-26", "Iran", "Egypt", "group stage", 0L, "draw", 0L, 1L, 1L,
+  2026, "2026-06-26", "New Zealand", "Belgium", "group stage", 0L, "lose", 0L, 1L, 5L,
+  2026, "2026-06-26", "Belgium", "New Zealand", "group stage", 0L, "win", 0L, 5L, 1L,
+  2026, "2026-06-26", "Cape Verde", "Saudi Arabia", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-26", "Saudi Arabia", "Cape Verde", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-26", "Uruguay", "Spain", "group stage", 0L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-26", "Spain", "Uruguay", "group stage", 0L, "win", 0L, 1L, 0L,
+  2026, "2026-06-26", "Norway", "France", "group stage", 0L, "lose", 0L, 1L, 4L,
+  2026, "2026-06-26", "France", "Norway", "group stage", 0L, "win", 0L, 4L, 1L,
+  2026, "2026-06-26", "Senegal", "Iraq", "group stage", 0L, "win", 0L, 5L, 0L,
+  2026, "2026-06-26", "Iraq", "Senegal", "group stage", 0L, "lose", 0L, 0L, 5L,
+  2026, "2026-06-27", "Algeria", "Austria", "group stage", 0L, "draw", 0L, 3L, 3L,
+  2026, "2026-06-27", "Austria", "Algeria", "group stage", 0L, "draw", 0L, 3L, 3L,
+  2026, "2026-06-27", "Jordan", "Argentina", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-27", "Argentina", "Jordan", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-27", "Colombia", "Portugal", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-27", "Portugal", "Colombia", "group stage", 0L, "draw", 0L, 0L, 0L,
+  2026, "2026-06-27", "DR Congo", "Uzbekistan", "group stage", 0L, "win", 0L, 3L, 1L,
+  2026, "2026-06-27", "Uzbekistan", "DR Congo", "group stage", 0L, "lose", 0L, 1L, 3L,
+  2026, "2026-06-27", "Panama", "England", "group stage", 0L, "lose", 0L, 0L, 2L,
+  2026, "2026-06-27", "England", "Panama", "group stage", 0L, "win", 0L, 2L, 0L,
+  2026, "2026-06-27", "Croatia", "Ghana", "group stage", 0L, "win", 0L, 2L, 1L,
+  2026, "2026-06-27", "Ghana", "Croatia", "group stage", 0L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-28", "Canada", "South Africa", "round of 32", 1L, "win", 0L, 1L, 0L,
+  2026, "2026-06-28", "South Africa", "Canada", "round of 32", 1L, "lose", 0L, 0L, 1L,
+  2026, "2026-06-29", "Brazil", "Japan", "round of 32", 1L, "win", 0L, 2L, 1L,
+  2026, "2026-06-29", "Japan", "Brazil", "round of 32", 1L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-29", "Paraguay", "Germany", "round of 32", 1L, "win", 1L, 1L, 1L,
+  2026, "2026-06-29", "Germany", "Paraguay", "round of 32", 1L, "lose", 1L, 1L, 1L,
+  2026, "2026-06-29", "Morocco", "Netherlands", "round of 32", 1L, "win", 1L, 1L, 1L,
+  2026, "2026-06-29", "Netherlands", "Morocco", "round of 32", 1L, "lose", 1L, 1L, 1L,
+  2026, "2026-06-30", "Norway", "Ivory Coast", "round of 32", 1L, "win", 0L, 2L, 1L,
+  2026, "2026-06-30", "Ivory Coast", "Norway", "round of 32", 1L, "lose", 0L, 1L, 2L,
+  2026, "2026-06-30", "France", "Sweden", "round of 32", 1L, "win", 0L, 3L, 0L,
+  2026, "2026-06-30", "Sweden", "France", "round of 32", 1L, "lose", 0L, 0L, 3L,
+  2026, "2026-06-30", "Mexico", "Ecuador", "round of 32", 1L, "win", 0L, 2L, 0L,
+  2026, "2026-06-30", "Ecuador", "Mexico", "round of 32", 1L, "lose", 0L, 0L, 2L,
+  2026, "2026-07-01", "England", "DR Congo", "round of 32", 1L, "win", 0L, 2L, 1L,
+  2026, "2026-07-01", "DR Congo", "England", "round of 32", 1L, "lose", 0L, 1L, 2L,
+  2026, "2026-07-01", "Belgium", "Senegal", "round of 32", 1L, "win", 0L, 3L, 2L,
+  2026, "2026-07-01", "Senegal", "Belgium", "round of 32", 1L, "lose", 0L, 2L, 3L,
+  2026, "2026-07-01", "United States", "Bosnia and Herzegovina", "round of 32", 1L, "win", 0L, 2L, 0L,
+  2026, "2026-07-01", "Bosnia and Herzegovina", "United States", "round of 32", 1L, "lose", 0L, 0L, 2L,
+  2026, "2026-07-02", "Spain", "Austria", "round of 32", 1L, "win", 0L, 3L, 0L,
+  2026, "2026-07-02", "Austria", "Spain", "round of 32", 1L, "lose", 0L, 0L, 3L,
+  2026, "2026-07-02", "Portugal", "Croatia", "round of 32", 1L, "win", 0L, 2L, 1L,
+  2026, "2026-07-02", "Croatia", "Portugal", "round of 32", 1L, "lose", 0L, 1L, 2L,
+  2026, "2026-07-02", "Switzerland", "Algeria", "round of 32", 1L, "win", 0L, 2L, 0L,
+  2026, "2026-07-02", "Algeria", "Switzerland", "round of 32", 1L, "lose", 0L, 0L, 2L,
+  2026, "2026-07-03", "Egypt", "Australia", "round of 32", 1L, "win", 1L, 1L, 1L,
+  2026, "2026-07-03", "Australia", "Egypt", "round of 32", 1L, "lose", 1L, 1L, 1L,
+  2026, "2026-07-03", "Argentina", "Cape Verde", "round of 32", 1L, "win", 0L, 3L, 2L,
+  2026, "2026-07-03", "Cape Verde", "Argentina", "round of 32", 1L, "lose", 0L, 2L, 3L,
+  2026, "2026-07-03", "Colombia", "Ghana", "round of 32", 1L, "win", 0L, 1L, 0L,
+  2026, "2026-07-03", "Ghana", "Colombia", "round of 32", 1L, "lose", 0L, 0L, 1L,
+  2026, "2026-07-04", "Morocco", "Canada", "round of 16", 1L, "win", 0L, 3L, 0L,
+  2026, "2026-07-04", "Canada", "Morocco", "round of 16", 1L, "lose", 0L, 0L, 3L,
+  2026, "2026-07-04", "France", "Paraguay", "round of 16", 1L, "win", 0L, 1L, 0L,
+  2026, "2026-07-04", "Paraguay", "France", "round of 16", 1L, "lose", 0L, 0L, 1L,
+  2026, "2026-07-05", "Norway", "Brazil", "round of 16", 1L, "win", 0L, 2L, 1L,
+  2026, "2026-07-05", "Brazil", "Norway", "round of 16", 1L, "lose", 0L, 1L, 2L,
+  2026, "2026-07-05", "England", "Mexico", "round of 16", 1L, "win", 0L, 3L, 2L,
+  2026, "2026-07-05", "Mexico", "England", "round of 16", 1L, "lose", 0L, 2L, 3L,
+  2026, "2026-07-06", "Spain", "Portugal", "round of 16", 1L, "win", 0L, 1L, 0L,
+  2026, "2026-07-06", "Portugal", "Spain", "round of 16", 1L, "lose", 0L, 0L, 1L,
+  2026, "2026-07-06", "Belgium", "United States", "round of 16", 1L, "win", 0L, 4L, 1L,
+  2026, "2026-07-06", "United States", "Belgium", "round of 16", 1L, "lose", 0L, 1L, 4L,
+  2026, "2026-07-07", "Argentina", "Egypt", "round of 16", 1L, "win", 0L, 3L, 2L,
+  2026, "2026-07-07", "Egypt", "Argentina", "round of 16", 1L, "lose", 0L, 2L, 3L,
+  2026, "2026-07-07", "Switzerland", "Colombia", "round of 16", 1L, "win", 1L, 0L, 0L,
+  2026, "2026-07-07", "Colombia", "Switzerland", "round of 16", 1L, "lose", 1L, 0L, 0L,
+  2026, "2026-07-09", "France", "Morocco", "quarter-finals", 1L, "win", 0L, 2L, 0L,
+  2026, "2026-07-09", "Morocco", "France", "quarter-finals", 1L, "lose", 0L, 0L, 2L,
+  2026, "2026-07-10", "Spain", "Belgium", "quarter-finals", 1L, "win", 0L, 2L, 1L,
+  2026, "2026-07-10", "Belgium", "Spain", "quarter-finals", 1L, "lose", 0L, 1L, 2L
+) %>% mutate(match_date = ymd(match_date),
+             margin     = goals_for - goals_against)     # negative margin = loss
+```
+
+```{r}
+# combine historical + 2026 matches
+matches_all <- bind_rows(results_hist, wc2026) %>%
+  arrange(world_cup, match_date, team)
+
+dim(matches_all)
+```
+
+After combining this year's and historical match datasets, I now have 964 team-match observations to use in my analysis.
+
+```{r}
+unique(matches_all$team)
+length(unique(matches_all$team))
+```
+
+In the full dataset, there are 72 countries represented. However, not all of them have a usable stock market.
+
+To deal with this, I manually map each country to its main national stock index, keeping only countries whose index has continuous daily data back to 2002. Smaller economies often lack a liquid, long-running index, so this necessarily skews toward developed and larger emerging markets.
+
+```{r}
+# manually map tickers to country names
+# only pick ones that have data going back to 2002
+
+tickers <- tribble(
+  ~team, ~ticker,
+  "France","^FCHI", "Germany","^GDAXI", "England","^FTSE",
+  "Spain","^IBEX", "Italy","FTSEMIB.MI", "Netherlands","^AEX",
+  "Belgium","^BFX", "Switzerland","^SSMI", "Sweden","^OMX",
+  "Austria","^ATX", "Portugal","PSI20.LS", "Greece","^ATG",
+  "Japan","^N225", "South Korea","^KS11", "Australia","^AXJO",
+  "United States","^GSPC", "Canada","^GSPTSE", "Brazil","^BVSP",
+  "Mexico","^MXX", "China","000001.SS", "Norway","^OSEAX",
+  "New Zealand","^NZ50", "Poland","WIG.WA", "South Africa","^JN0U.JO","Chile","^IPSA",
+  "Republic of Ireland","^ISEQ", "Czech Republic","^PX", "Denmark","^OMXC20",
+  "Turkey","XU100.IS", "Argentina","^MERV", "Colombia","^COLCAP",
+  "Saudi Arabia","^TASI.SR"
+)
+
+```
+
+Next, I download daily prices for each index and convert them to daily log returns. I use returns rather than raw index levels because indices sit at very different absolute values across countries; returns put every market on the same percentage-change scale.
+
+```{r}
+#| cache: true
+
+returns <- tq_get(tickers$ticker,
+                  from = "2001-11-01", to = "2026-07-25",
+                  get  = "stock.prices") %>%
+  group_by(symbol) %>% arrange(date) %>%
+  mutate(ret = log(adjusted / lag(adjusted))) %>% # daily % change
+  ungroup() %>% filter(!is.na(ret)) %>%
+  left_join(tickers, by = c("symbol" = "ticker")) %>%
+  select(team, symbol, date, ret)
+ 
+cat("countries with price data:", paste(sort(unique(returns$team)), collapse = ", "), "\n")  # check which countries actually have data
+```
+
+```{r}
+# teams with useable data
+unique(returns$team)
+length(unique(returns$team))
+```
+
+A few indices failed to download and were dropped, leaving 28 countries with usable return data.
+
+Now I link each result to the right market day. I assign each win or loss to the first trading day after the match (a Friday-night loss lands on the following Monday), and make treatment flags separately for losses and wins (for easier analysis later).
+
+```{r}
+# map each match to its treated day (first trading day AFTER) 
+# assume effect lands on the next session (a Fri-night loss hits Monday). 
+# NA if that country has no price data
+
+next_trading_day <- function(tm, mdate) {
+  cand <- returns$date[returns$team == tm & returns$date > mdate]
+  if (length(cand) == 0) return(as.Date(NA))
+  min(cand)
+}
+ 
+make_treatment <- function(res) { # res = "lose" or "win"
+  matches_all %>%
+    filter(result == res, team %in% tickers$team) %>%
+    mutate(treat_date = pmap_vec(list(team, match_date), next_trading_day)) %>%
+    filter(!is.na(treat_date)) %>%
+    # if a team has two matches mapping to the same session, keep the worse/bigger
+    group_by(team, treat_date) %>%
+    slice_min(margin, n = 1, with_ties = FALSE) %>% # for wins, slice_max is symmetric enough
+    ungroup() %>%
+    transmute(team, date = treat_date, margin)
+}
+ 
+loss_days <- make_treatment("lose") %>% rename(margin_loss = margin) %>% mutate(post_loss = 1L)
+win_days  <- make_treatment("win")  %>% rename(margin_win  = margin) %>% mutate(post_win  = 1L)
+```
+
+After, I merge the treatment flags onto a panel of every country's daily returns to get a country–day panel: one row per country per trading day, marked for whether its team had just won or lost, with the goal margin added as well.
+
+```{r}
+# assemble the country-day panel
+panel <- returns %>%
+  left_join(loss_days, by = c("team", "date")) %>%
+  left_join(win_days,  by = c("team", "date")) %>%
+  mutate(post_loss   = coalesce(post_loss, 0L),
+         post_win    = coalesce(post_win, 0L),
+         margin_loss = coalesce(margin_loss, 0), # 0 off-treatment, so it
+         margin_win  = coalesce(margin_win, 0)) # doubles as the interaction
+
+```
+
+```{r}
+head(panel)
+```
+
+My dataset for analysis is complete! But before analysing, I check the panel is internally consistent: I need to confirm that every loss has a non-positive margin and every win a non-negative one. I also take a raw look at average returns on loss days versus other days. (This raw gap ignores global market movements, so it isn't the result, but it gives me a general idea of what's to come).
+
+```{r}
+panel %>% summarise(country_days = n(),
+                    countries    = n_distinct(team),
+                    n_loss_days  = sum(post_loss),
+                    n_win_days   = sum(post_win)) %>% print()
+ 
+# margins must have the right sign (shootout games are 0, hence <=/>=)
+stopifnot(all(panel$margin_loss[panel$post_loss == 1] <= 0)) # losses, never positive
+stopifnot(all(panel$margin_win[ panel$post_win  == 1] >= 0)) # wins, never negative
+cat("sign checks passed: loss margins <= 0, win margins >= 0\n")
+ 
+# peek at avg returns
+panel %>% group_by(post_loss) %>% summarise(mean_ret = mean(ret), n = n()) %>% print()
+```
+
+Overall the data looks good. The panel has 150889 country-days across 28 countries, with 173 losses and 273 wins falling on trading days. The sign checks pass. Time to move onto analysis!
+
+# Modeling
+
+To answer each of my three questions, I run a two-way fixed effects regression to estimate the effect of match results on next-day stock returns.
+
+In each, a country fixed effect removes each market's baseline, and a date fixed effect absorbs whatever moved all markets that day, so the remaining coefficient captures the effect specific to just having won or lost. Standard errors are clustered by country.
+
+I run four models that map onto my three questions:
+
+- `m_loss` estimates the effect of a loss (Q1)
+- `m_win` the effect of a win (Q2)
+- the two margin models ask whether the size of the result matters (Q3) by adding the goal margin, letting the effect scale with how large the win or loss was.
+
+```{r}
+# date FE = the same-day control group
+# team FE = each market's baseline.
+# margin_* is 0 for untreated, so it enters as the treatment-response slope.
+m_loss     <- feols(ret ~ post_loss                | team + date, panel, cluster = ~team)
+m_win      <- feols(ret ~ post_win                 | team + date, panel, cluster = ~team)
+m_loss_mrg <- feols(ret ~ post_loss + margin_loss  | team + date, panel, cluster = ~team)
+m_win_mrg  <- feols(ret ~ post_win  + margin_win   | team + date, panel, cluster = ~team)
+ 
+etable(m_loss, m_win, m_loss_mrg, m_win_mrg,
+       headers = c("Q1 loss", "Q2 win", "Q3 loss x margin", "Q3 win x margin"),
+       digits = 4)
+```
+
+The effect of a loss (Q1) is about −0.09%: negative, as the sentiment hypothesis predicts, but not statistically significant.
+
+The effect of a win (Q2) is essentially zero, consistent with the well-documented asymmetry that losses weigh on mood more than wins.
+
+Neither margin term (Q3) is significant, and the loss-margin coefficient, if anything, runs opposite to the sentiment prediction, so I find no evidence that larger results move the market more.
+
+Across all four models the within-R2 is near zero, meaning match results explain almost none of the day-to-day variation in returns.
+
+# Robustness Checks
+
+Having estimated the main effects, I test whether they hold under alternative samples and specifications. My aim is not to search for significance, but to confirm the null result is robust and not an artefact of particular choices.
+
+Group-stage matches, especially those where a team has already qualified or been eliminated, carry little emotional weight, which could dilute any effect. So I first restrict the loss indicator to knockout-stage matches, the highest-stakes and most emotionally charged games, where a sentiment effect should be strongest if it exists.
+
+```{r}
+# knockout-only loss flag: 1 only on the day after a KNOCKOUT loss
+loss_days_ko <- matches_all %>%
+  filter(result == "lose", team %in% tickers$team, knockout == 1) %>%
+  mutate(treat_date = pmap_vec(list(team, match_date), next_trading_day)) %>%
+  filter(!is.na(treat_date)) %>%
+  group_by(team, treat_date) %>% slice_min(margin, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  transmute(team, date = treat_date, post_loss_ko = 1L)
+
+panel <- panel %>%
+  select(-any_of("post_loss_ko")) %>%  # remove any leftover from a prior run
+  left_join(loss_days_ko, by = c("team","date")) %>%
+  mutate(post_loss_ko = coalesce(post_loss_ko, 0L))
+
+m_loss_ko <- feols(ret ~ post_loss_ko | team + date, panel, cluster = ~team)
+summary(m_loss_ko)
+```
+
+The knockout-only estimate is about −0.15%, larger in magnitude than the all-losses effect of −0.09%, the direction the sentiment story predicts, since higher-stakes matches should provoke a stronger reaction. But with far fewer treated days the estimate is noisier, and it remains statistically insignificant (p \~ 0.26).
+
+Next, since Argentina and Turkey experienced high inflation over this period, which makes their nominal stock returns extremely volatile, I re-estimate the main model excluding them, to check if these noisy markets are distorting the result or not.
+
+```{r}
+m_loss_noAT <- feols(ret ~ post_loss | team + date,
+                     panel %>% filter(!team %in% c("Argentina","Turkey")),
+                     cluster = ~team)
+summary(m_loss_noAT)
+```
+
+Excluding the two inflation-distorted markets leaves the loss effect still small, negative, and insignificant--if anything slightly closer to zero. The conclusion is unchanged, so these markets are not driving the result.
+
+## Identification: Parallel Trends
+
+Finally, I test the assumptions the DiD design rests on. I estimate the event-study version of the main model, the same two-way fixed-effects regression, but with the single loss indicator split into separate indicators for each trading day around the loss (three days before to three days after, with the day before the loss as the omitted reference). This lets me trace the effect over time and check whether the design is valid.
+
+
+If my design is sound, the coefficients for the days before the loss should be flat and near zero, showing the losing country's market was behaving normally, with no divergence or reaction, until the match was actually played.
+
+```{r}
+win  <- -3:3
+ctrl <- 99L   # code for normal days = the reference
+
+# trading-day calendar per team
+cal <- returns %>% distinct(team, date) %>% arrange(team, date) %>%
+  group_by(team) %>% mutate(pos = row_number()) %>% ungroup()
+
+# find each loss's reaction day
+loss_pos <- matches_all %>%
+  filter(result == "lose", team %in% tickers$team) %>%
+  mutate(treat_date = pmap_vec(list(team, match_date), next_trading_day)) %>%
+  filter(!is.na(treat_date)) %>%
+  distinct(team, treat_date) %>%
+  left_join(cal, by = c("team", "treat_date" = "date")) %>%
+  transmute(team, treat_pos = pos)
+
+# get the 3 days before and after each loss
+ev <- loss_pos %>%
+  tidyr::crossing(k = win) %>%
+  mutate(target_pos = treat_pos + k) %>%
+  left_join(cal, by = c("team", "target_pos" = "pos")) %>%
+  filter(!is.na(date)) %>%
+  group_by(team, date) %>% slice_min(abs(k), n = 1, with_ties = FALSE) %>%
+  ungroup() %>% select(team, date, k)
+
+
+panel_es <- panel %>%
+  left_join(ev, by = c("team", "date")) %>%
+  mutate(event_time = ifelse(is.na(k), -1L, k))
+
+# event-study regression
+m_es <- feols(ret ~ i(event_time, ref = -1) | team + date,
+              panel_es, cluster = ~team)
+etable(m_es)
+```
+
+```{r}
+# pull coefficients + CIs, add the reference point at -1 = 0
+ci <- as.data.frame(confint(m_es)); names(ci) <- c("lo","hi")
+es <- tibble(term = rownames(ci), est = coef(m_es), lo = ci$lo, hi = ci$hi) %>%
+  mutate(k = as.integer(str_remove(term, "event_time::"))) %>%
+  filter(!is.na(k)) %>%
+  bind_rows(tibble(k = -1, est = 0, lo = 0, hi = 0)) %>%   # reference point
+  arrange(k)
+
+# plot effect by event time
+ggplot(es, aes(k, est)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = -1, linetype = "dashed") +
+  geom_pointrange(aes(ymin = lo, ymax = hi), color = "darkred") +
+  scale_x_continuous(breaks = -3:3) +
+  labs(x = "Event Time", y = "Treatment Effect on Daily Return",
+       title = "National Stock Returns Around a World Cup Loss") +
+  theme_minimal()
+```
+
+The event-study estimates provide the key diagnostic for the design. The pre-loss coefficients (event times −3 and −2) are small and statistically indistinguishable from zero, indicating that losing countries' markets were neither already diverging nor reacting in advance of the match--support for both the parallel-trends and no-anticipation assumptions. On the day after the loss (event time 0) the estimate is −0.09%, matching the main regression, but its confidence interval includes zero; the subsequent days hover around zero with no clear pattern. 
+
+# Conclusion
+## Interpretation
+
+Across all three research questions, I find no statistically significant effect of World Cup results on national stock returns. 
+
+The estimated effect of a loss (Q1) is about −0.09%: negative, in the direction the sentiment hypothesis predicts, but not distinguishable from zero. The effect of a win (Q2) is essentially zero, consistent with the well-documented asymmetry in which losses weigh on investor mood more than wins. For Q3, neither margin term is significant, so I find no evidence that the size of a result matters. Restricting to knockout-stage losses, the highest-stakes matches, produces a somewhat larger estimate (about −0.15%), which is again in the predicted direction but remains insignificant. Similarly, removing countries with high inflation over the data's time period (Argentina and Turkey), leaves the loss effect still small, negative, and insignificant. 
+
+Two things reinforce that this null is a genuine result rather than a failure of the design. First, the event-study estimates show no significant pre-trends: in the days before a loss, markets were neither diverging nor reacting, supporting the assumptions the design relies on. Second, the within-R2 across every model is on the order of $10^{-5}$, meaning match results explain almost none of the day-to-day variation in returns. The point estimates behave exactly as the sentiment story would predict (negative for losses, larger for bigger matches, absent for wins), but they are consistently too small and too noisy to separate from zero.
+
+Taken together, my results are most consistent with national equity markets being largely efficient with respect to public sporting information. A World Cup result is public, emotionally charged, and widely watched, yet it does not systematically move a country's stock market the next day. If a sentiment effect exists, it is small enough that a study of this size cannot detect it. In contrast to Edmans et al. (2007), who find a significant decline around World Cup elimination, I detect no significant effect when pooling all match results across this broader, more recent sample, suggesting the effect may be concentrated in elimination games, or has weakened over time.
+
+## Limitations
+
+Several limitations qualify these conclusions. Most importantly, my analysis rests on a relatively small number of treated events--173 losses across the sample--which limits statistical power and means a small true effect could easily go undetected. The consistently correct sign of the point estimates leaves open the possibility that a genuine effect could exist, one that a larger sample might identify.
+
+The sample is also selected. I can only include countries with a liquid stock index going back to 2002 (28 countries out of the 72 represented in the full dataset), which skews the panel toward developed and larger emerging economies. Countries where football is most culturally central, and where a sentiment effect might be strongest, are often precisely those without a suitable index, so my sample may understate the true effect.
+
+My timing rule assigns each result to the next trading day, which may misdate the reaction for matches that end while the home market is still open. A more precise design would use exact kickoff times relative to each market's trading hours.
+
+There are also measurement limitations. My margin variable captures the severity of a result but not its surprise: a heavy defeat against a weak opponent may be fully expected and carry little emotional weight, while a narrow loss to a favourite may be a shock. Since investor mood likely responds to surprise more than score, goal margin is an imperfect proxy, and this may be why the margin results are weak. A better measure would use pre-match betting odds to isolate the unexpected component of each result. Also, I only examine the single trading day after a match; a reaction that is delayed, or that reverses over several days, is not fully captured by this window.
+
+None of these issues undermines my core findings, but each suggests that the absence of a detectable effect should be read as "too small to measure in this sample," rather than definitive proof that no effect exists.
+
+## References
+
+Edmans, A., García, D., & Norli, Ø. (2007). Sports Sentiment and Stock Returns. *Journal of Finance, 62*(4), 1967–1998. <https://doi.org/10.1111/j.1540-6261.2007.01262.x>
+
+Fjelstul, J. C. (2023). *The Fjelstul World Cup Database* [Data set]. GitHub. <https://github.com/jfjelstul/worldcup>
+
